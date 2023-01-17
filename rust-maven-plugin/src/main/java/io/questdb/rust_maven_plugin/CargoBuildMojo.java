@@ -40,22 +40,95 @@ import java.util.concurrent.Executors;
 /**
  * An example of a Maven plugin.
  */
-@Mojo(name = "cargo-build", defaultPhase = LifecyclePhase.COMPILE)
+@Mojo(name = "build", defaultPhase = LifecyclePhase.COMPILE)
 public class CargoBuildMojo extends CargoMojoBase {
 
     /**
-     * Defaults to "false" and creates a debug build
-     * Set to "true" to call "cargo build --release" for a release build.
+     * Build artifacts in release mode, with optimizations.
+     * Defaults to "false" and creates a debug build.
+     * Equivalent to Cargo's `--release` option.
      */
-    @Parameter(property="cargo.release", defaultValue="false")
+    @Parameter(property = "release", defaultValue = "false")
     private boolean release;
+
+    /**
+     * List of features to activate.
+     * If not specified, default features are activated.
+     * Equivalent to Cargo's `--features` option.
+     */
+    @Parameter(property = "features")
+    private String[] features;
+
+    /**
+     * Activate all available features.
+     * Defaults to "false".
+     * Equivalent to Cargo's `--all-features` option.
+     */
+    @Parameter(property = "all-features", defaultValue = "false")
+    private boolean allFeatures;
+
+    /**
+     * Do not activate the `default` feature.
+     * Defaults to "false".
+     * Equivalent to Cargo's `--no-default-features` option.
+     */
+    @Parameter(property = "no-default-features", defaultValue = "false")
+    private boolean noDefaultFeatures;
+
+// TODO: We might need to place the build artifacts inside Maven's build directory.
+// If we need to do this then we can use the options below.
+//    /**
+//     * Directory for all generated artifacts.
+//     * Defaults to the Java project's build directory.
+//     */
+//    @Parameter(property = "target-dir", defaultValue = "${project.build.directory}")
+//    private String targetDir;
+//
+//    @Parameter(property = "default-target-dir", defaultValue = "${project.build.directory}")
+//    private boolean defaultTargetDir;
+
+    /**
+     * Build all tests.
+     * Defaults to "false".
+     * Equivalent to Cargo's `--tests` option.
+     */
+    @Parameter(property = "tests", defaultValue = "false")
+    private boolean tests;
+
+    /** Additional args to pass to cargo. */
+    @Parameter(property = "extra-args")
+    private String[] extraArgs;
 
     @Override
     public void execute() throws MojoExecutionException {
         List<String> args = new ArrayList<>();
         args.add("build");
+
         if (release) {
             args.add("--release");
+        }
+
+        if (allFeatures) {
+            args.add("--all-features");
+        }
+
+        if (noDefaultFeatures) {
+            args.add("--no-default-features");
+        }
+
+        if (features != null && features.length > 0) {
+            args.add("--features");
+            args.add(String.join(",", features));
+        }
+
+        if (tests) {
+            args.add("--tests");
+        }
+
+        if (extraArgs != null && extraArgs.length > 0) {
+            for (String arg : extraArgs) {
+                args.add(arg);
+            }
         }
         cargo(args);
     }

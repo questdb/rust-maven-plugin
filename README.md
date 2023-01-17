@@ -6,10 +6,19 @@ Most things don't work yet.
 
 # Dev Commands
 
+To build the project and example:
+
+```shell
+git clone $THIS_PROJ
+mvn package
+```
+
+To run Maven goals directly from the command line.
+
 ```shell
 cd rust-maven-plugin
 mvn install
-mvn io.questdb:rust-maven-plugin:cargo-build -Dcargo.release=true
+mvn io.questdb:rust-maven-plugin:build -Drelease=true
 ```
 
 # Example

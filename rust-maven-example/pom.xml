@@ -59,64 +59,24 @@
             <plugin>
                 <groupId>io.questdb</groupId>
                 <artifactId>rust-maven-plugin</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
-                <configuration>
-<!--                    <cargoProjectDir>${project.basedir}/str-reverse</cargoProjectDir>-->
-                </configuration>
-            </plugin>            
-        </plugins>
-    </build>
-
-    <!-- <build>
-        <plugins>
-            <plugin>
-                <groupId>io.questdb</groupId>
-                <artifactId>rust-maven-plugin</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <executions>
                     <execution>
-                        <id>build</id>
-                        <phase>compile</phase>
+                        <id>cargo-build</id>
                         <goals>
                             <goal>build</goal>
                         </goals>
+                        <configuration>
+                            <path>${project.basedir}/src/main/rust/str-reverse</path>
+                            <release>true</release>
+                            <environmentVariables>
+                                <key>value</key>
+                            </environmentVariables>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <cargoProjectDir>${project.basedir}/../example-rust</cargoProjectDir>
-                    <cargoBuildDir>${project.build.directory}/cargo</cargoBuildDir>
-                    <cargoBuildType>release</cargoBuildType>
-                    <cargoBuildArgs>
-                        <cargoBuildArg>- -features</cargoBuildArg>
-                        <cargoBuildArg>jni</cargoBuildArg>
-                    </cargoBuildArgs>
-                    <cargoBuildEnv>
-                        <cargoBuildEnvVar>
-                            <cargoBuildEnvVarName>CARGO_TARGET_DIR</cargoBuildEnvVarName>
-                            <cargoBuildEnvVarValue>${project.build.directory}/cargo</cargoBuildEnvVarValue>
-                        </cargoBuildEnvVar>
-                    </cargoBuildEnv>
-                    <cargoBuildProfile>release</cargoBuildProfile>
-                    <cargoBuildProfileArgs>
-                        <cargoBuildProfileArg>- -features</cargoBuildProfileArg>
-                        <cargoBuildProfileArg>jni</cargoBuildProfileArg>
-                    </cargoBuildProfileArgs>
-                    <cargoBuildProfileEnv>
-                        <cargoBuildProfileEnvVar>
-                            <cargoBuildProfileEnvVarName>CARGO_TARGET_DIR</cargoBuildProfileEnvVarName>
-                            <cargoBuildProfileEnvVarValue>${project.build.directory}/cargo</cargoBuildProfileEnvVarValue>
-                        </cargoBuildProfileEnvVar>
-                    </cargoBuildProfileEnv>
-                    <cargoBuildProfileArgs>
-                        <cargoBuildProfileArg>- -features</cargoBuildProfileArg>
-                        <cargoBuildProfileArg>jni</cargoBuildProfileArg>
-                    </cargoBuildProfileArgs>
-                    <cargoBuildProfileEnv>
-                        <cargoBuildProfileEnvVar>
-                            <cargoBuildProfileEnvVarName>CARGO_TARGET_DIR</cargoBuildProfileEnvVarName>
-                            <cargoBuildProfileEnvVarValue>${project.build.directory}/cargo</cargoBuildProfileEnvVarValue>
-                        </cargoBuildProfileEnvVar>
-                    </cargoBuildProfileEnv>
-    </build> -->
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

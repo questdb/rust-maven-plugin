@@ -26,18 +26,17 @@ package io.questdb.rust_maven_plugin;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
-import java.util.regex.Pattern;
 
 public abstract class CargoMojoBase extends AbstractMojo {
 
@@ -47,10 +46,16 @@ public abstract class CargoMojoBase extends AbstractMojo {
     @Parameter(property = "cargo.path", defaultValue = "cargo")
     private String cargoPath;
 
+    /**
+     * Path to the Rust crate (or workspace) to build.
+     */
+    @Parameter(property = "path", required = true)
+    private String path;
+
     @Parameter(property = "project", readonly = true)
     protected MavenProject project;
 
-    protected String getCargoPath() {
+    protected String getCargoPath() {  // TODO: Should this return a File instead?
         String path = cargoPath;
 
         final boolean isWindows = System.getProperty("os.name")
@@ -65,39 +70,28 @@ public abstract class CargoMojoBase extends AbstractMojo {
         return path;
     }
 
+    protected File getPath() {
+        return new File(path);
+    }
+
     private void runCommand(List<String> args)
-            throws IOException, InterruptedException {
+            throws IOException, InterruptedException, MojoExecutionException {
         final ProcessBuilder processBuilder = new ProcessBuilder(args);
         processBuilder.redirectErrorStream(true);
 
         // Set the current working directory for the cargo command.
-        processBuilder.directory(project.getBasedir());
+        processBuilder.directory(getPath());
         final Process process = processBuilder.start();
-        final StringBuilder output = new StringBuilder();
+        Log log = getLog();
         Executors.newSingleThreadExecutor().submit(() -> {
             new BufferedReader(new InputStreamReader(process.getInputStream()))
                     .lines()
-                    .forEach(output::append);
+                    .forEach(log::info);
         });
 
         final int exitCode = process.waitFor();
         if (exitCode != 0) {
-            String indentedOutput = output.toString().replaceAll("(?m)^", "      ");
-            StringBuilder descr = new StringBuilder();
-            descr.append('\n');
-            descr.append("  - Command: ");
-            for (int i = 0; i < args.size(); i++) {
-                final String escapedArg = Shlex.quote(args.get(i));
-                descr.append(escapedArg);
-                final char terminator = i < args.size() - 1 ? ' ' : '\n';
-                descr.append(terminator);
-            }
-            descr.append("  - Exit code: ").append(exitCode).append('\n');
-            descr.append("  - Project directory: ")
-                    .append(processBuilder.directory().getAbsolutePath())
-                    .append('\n');
-            descr.append("  - Command output:\n").append(indentedOutput).append('\n');
-            throw new IOException(descr.toString());
+            throw new MojoExecutionException("Cargo command failed with exit code " + exitCode);
         }
     }
 
@@ -106,6 +100,8 @@ public abstract class CargoMojoBase extends AbstractMojo {
         final List<String> cmd = new ArrayList<>();
         cmd.add(cargoPath);
         cmd.addAll(args);
+        getLog().info("Working directory: " + getPath());
+        getLog().info("Running: " + Shlex.quote(cmd));
         try {
             runCommand(cmd);
         } catch (IOException | InterruptedException e) {

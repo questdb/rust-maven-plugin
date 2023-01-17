@@ -24,6 +24,7 @@
 
 package io.questdb.rust_maven_plugin;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 public interface Shlex {
@@ -43,5 +44,15 @@ public interface Shlex {
             return "'" + s.replace("'", "'\"'\"'") + "'";
         else
             return s;
+    }
+
+    static String quote(List<String> args) {
+        StringBuilder sb = new StringBuilder();
+        for (String arg : args) {
+            if (sb.length() > 0)
+                sb.append(' ');
+            sb.append(quote(arg));
+        }
+        return sb.toString();
     }
 }
