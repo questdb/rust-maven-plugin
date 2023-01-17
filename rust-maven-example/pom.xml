@@ -47,6 +47,11 @@
             <artifactId>rust-maven-plugin</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>jar-jni-loader</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -56,7 +61,7 @@
                 <artifactId>rust-maven-plugin</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
                 <configuration>
-                    <cargoProjectDir>${project.basedir}/str-reverse</cargoProjectDir>
+<!--                    <cargoProjectDir>${project.basedir}/str-reverse</cargoProjectDir>-->
                 </configuration>
             </plugin>            
         </plugins>

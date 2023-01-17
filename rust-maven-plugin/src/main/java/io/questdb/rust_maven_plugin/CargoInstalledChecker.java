@@ -88,7 +88,7 @@ public final class CargoInstalledChecker {
                         .append(Shlex.quote(cargoPath));
             }
         }
-        error.append(". See https://www.rust-lang.org/tools/install");
+        error.append(".\n\nSee https://www.rust-lang.org/tools/install");
         throw new MojoExecutionException(error.toString());
     }
 

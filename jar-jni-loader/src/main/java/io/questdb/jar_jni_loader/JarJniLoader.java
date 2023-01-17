@@ -22,17 +22,17 @@
  *
  ******************************************************************************/
 
-package io.questdb.rust_maven_example;
+package io.questdb.jar_jni_loader;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 
-public interface JniJarLoader {
-    public static void loadLib(String jarPathPrefix, Lib lib) {
+public interface JarJniLoader {
+    public static void loadLib(ClassLoader classLoader, String jarPathPrefix, Lib lib) {
         String pathInJar = jarPathPrefix + lib.getFullName();
-        InputStream is = JniJarLoader.class.getResourceAsStream(pathInJar);
+        InputStream is = classLoader.getResourceAsStream(pathInJar);
         if (is == null) {
             throw new LoadException("Internal error: cannot find " + pathInJar + ", broken package?");
         }
@@ -40,7 +40,7 @@ public interface JniJarLoader {
         try {
             File tempLib = null;
             try {
-                int dot = pathInJar.indexOf('.');
+                final int dot = pathInJar.indexOf('.');
                 tempLib = File.createTempFile(pathInJar.substring(0, dot), pathInJar.substring(dot));
                 // copy to tempLib
                 try (FileOutputStream out = new FileOutputStream(tempLib)) {
@@ -111,13 +111,14 @@ public interface JniJarLoader {
         private String name;
         private String prefix;
         private String suffix;
-        public Lib (String name) {
+
+        public Lib(String name) {
             this.name = name;
             this.prefix = OsLibConventions.INSTANCE.getLibPrefix();
             this.suffix = OsLibConventions.INSTANCE.getLibSuffix();
         }
 
-        public Lib (String name, String prefix, String suffix) {
+        public Lib(String name, String prefix, String suffix) {
             this.name = name;
             this.prefix = prefix;
             this.suffix = suffix;
