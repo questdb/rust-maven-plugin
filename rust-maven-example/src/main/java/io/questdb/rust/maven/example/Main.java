@@ -32,7 +32,11 @@ public class Main {
     static {
         JarJniLoader.loadLib(
                 Main.class,
-                "/io/questdb/rust/maven/example",
+
+                // A platform-specific path is automatically suffixed to path below.
+                "/io/questdb/rust/maven/example/libs",
+
+                // The "lib" prefix and ".so|.dynlib|.dll" suffix are added automatically as needed.
                 "str_reverse");
     }
 
