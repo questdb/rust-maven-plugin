@@ -22,11 +22,37 @@
  *
  ******************************************************************************/
 
-package io.questdb.rust_maven_example;
+package io.questdb.rust.maven.plugin;
 
-public class StringUtil {
-    public static native String reversedString(String str);
-    static {
-        System.loadLibrary("str_reverse");
+import java.util.List;
+import java.util.regex.Pattern;
+
+public interface Shlex {
+
+    /**
+     * Escape a string for use in a shell command.
+     *
+     * @param s The string to escape.
+     * @return The escaped string.
+     * @see <a href="https://docs.python.org/3/library/shlex.html#shlex.quote">shlex.quote</a>
+     */
+    static String quote(String s) {
+        if (s.isEmpty())
+            return "''";
+        Pattern unsafe = Pattern.compile("[^\\w@%+=:,./-]");
+        if (unsafe.matcher(s).find())
+            return "'" + s.replace("'", "'\"'\"'") + "'";
+        else
+            return s;
+    }
+
+    static String quote(List<String> args) {
+        StringBuilder sb = new StringBuilder();
+        for (String arg : args) {
+            if (sb.length() > 0)
+                sb.append(' ');
+            sb.append(quote(arg));
+        }
+        return sb.toString();
     }
 }

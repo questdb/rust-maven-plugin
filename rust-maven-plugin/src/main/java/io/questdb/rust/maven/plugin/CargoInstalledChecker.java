@@ -22,7 +22,7 @@
  *
  ******************************************************************************/
 
-package io.questdb.rust_maven_plugin;
+package io.questdb.rust.maven.plugin;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;

@@ -27,7 +27,7 @@ use jni::objects::{JClass, JString};
 use jni::sys::jstring;
 
 #[no_mangle]
-pub extern "system" fn Java_io_questdb_rust_maven_example_StringUtil_reversedString(
+pub extern "system" fn Java_io_questdb_rust_maven_example_Main_reversedString(
         env: JNIEnv,
         _class: JClass,
         input: JString) -> jstring {

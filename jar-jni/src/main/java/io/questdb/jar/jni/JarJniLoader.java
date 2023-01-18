@@ -22,7 +22,7 @@
  *
  ******************************************************************************/
 
-package io.questdb.jar_jni_loader;
+package io.questdb.jar.jni;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -30,9 +30,11 @@ import java.io.InputStream;
 import java.io.IOException;
 
 public interface JarJniLoader {
-    public static void loadLib(ClassLoader classLoader, String jarPathPrefix, Lib lib) {
-        String pathInJar = jarPathPrefix + lib.getFullName();
-        InputStream is = classLoader.getResourceAsStream(pathInJar);
+
+    static <T> void loadLib(Class<T> cls, String jarPathPrefix, LibInfo lib) {
+        final String sep = jarPathPrefix.endsWith("/") ? "" : "/";
+        final String pathInJar = jarPathPrefix + sep + lib.getPath();
+        final InputStream is = cls.getResourceAsStream(pathInJar);
         if (is == null) {
             throw new LoadException("Internal error: cannot find " + pathInJar + ", broken package?");
         }
@@ -68,76 +70,7 @@ public interface JarJniLoader {
         }
     }
 
-    public static class LoadException extends RuntimeException {
-        public LoadException(String message) {
-            super(message);
-        }
-
-        public LoadException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
-
-    public static enum OsLibConventions {
-        INSTANCE();
-
-        private final String libPrefix;
-        private final String libSuffix;
-
-        private OsLibConventions() {
-            String osName = System.getProperty("os.name").toLowerCase();
-            if (osName.contains("win")) {
-                this.libPrefix = "";
-                this.libSuffix = ".dll";
-            } else if (osName.contains("mac")) {
-                this.libPrefix = "lib";
-                this.libSuffix = ".dylib";
-            } else {
-                this.libPrefix = "lib";
-                this.libSuffix = ".so";
-            }
-        }
-
-        public String getLibPrefix() {
-            return libPrefix;
-        }
-
-        public String getLibSuffix() {
-            return libSuffix;
-        }
-    }
-
-    public static class Lib {
-        private String name;
-        private String prefix;
-        private String suffix;
-
-        public Lib(String name) {
-            this.name = name;
-            this.prefix = OsLibConventions.INSTANCE.getLibPrefix();
-            this.suffix = OsLibConventions.INSTANCE.getLibSuffix();
-        }
-
-        public Lib(String name, String prefix, String suffix) {
-            this.name = name;
-            this.prefix = prefix;
-            this.suffix = suffix;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getPrefix() {
-            return prefix;
-        }
-
-        public String getSuffix() {
-            return suffix;
-        }
-
-        public String getFullName() {
-            return prefix + name + suffix;
-        }
+    static <T> void loadLib(Class<T> cls, String jarPathPrefix, String libName) {
+        loadLib(cls, jarPathPrefix, new LibInfo(libName));
     }
 }

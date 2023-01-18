@@ -22,20 +22,16 @@
  *
  ******************************************************************************/
 
-package io.questdb.rust_maven_plugin;
+package io.questdb.rust.maven.plugin;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 
 /**
  * An example of a Maven plugin.
@@ -103,6 +99,9 @@ public class CargoBuildMojo extends CargoMojoBase {
     public void execute() throws MojoExecutionException {
         List<String> args = new ArrayList<>();
         args.add("build");
+
+        args.add("--target-dir");
+        args.add(getTargetDir().getAbsolutePath());
 
         if (release) {
             args.add("--release");

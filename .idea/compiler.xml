@@ -7,7 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="rust-maven-example" />
-        <module name="jar-jni-loader" />
+        <module name="jar-jni" />
         <module name="rust-maven-plugin" />
       </profile>
     </annotationProcessing>

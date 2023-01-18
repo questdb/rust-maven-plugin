@@ -43,14 +43,15 @@
 
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>io.questdb</groupId>
             <artifactId>rust-maven-plugin</artifactId>
-            <version>${project.version}</version>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>jar-jni-loader</artifactId>
+            <groupId>io.questdb</groupId>
+            <artifactId>jar-jni</artifactId>
             <version>${project.version}</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
@@ -60,19 +61,17 @@
                 <groupId>io.questdb</groupId>
                 <artifactId>rust-maven-plugin</artifactId>
                 <version>${project.version}</version>
+                <configuration>
+                    <path>${project.basedir}/src/main/rust/str-reverse</path>
+                    <release>true</release>
+                    <targetDir>${project.build.directory}/str-reverse</targetDir>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>cargo-build</id>
+                        <id>build</id>
                         <goals>
                             <goal>build</goal>
                         </goals>
-                        <configuration>
-                            <path>${project.basedir}/src/main/rust/str-reverse</path>
-                            <release>true</release>
-                            <environmentVariables>
-                                <key>value</key>
-                            </environmentVariables>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

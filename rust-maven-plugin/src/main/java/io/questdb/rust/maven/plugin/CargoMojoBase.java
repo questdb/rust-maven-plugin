@@ -22,7 +22,7 @@
  *
  ******************************************************************************/
 
-package io.questdb.rust_maven_plugin;
+package io.questdb.rust.maven.plugin;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -55,7 +55,7 @@ public abstract class CargoMojoBase extends AbstractMojo {
     @Parameter(property = "project", readonly = true)
     protected MavenProject project;
 
-    protected String getCargoPath() {  // TODO: Should this return a File instead?
+    protected String getCargoPath() {
         String path = cargoPath;
 
         final boolean isWindows = System.getProperty("os.name")
@@ -71,7 +71,21 @@ public abstract class CargoMojoBase extends AbstractMojo {
     }
 
     protected File getPath() {
-        return new File(path);
+        File file = new File(path);
+        if (file.isAbsolute()) {
+            return file;
+        } else {
+            return new File(project.getBasedir(), path);
+        }
+    }
+
+    protected String getName() {
+        final String[] components = path.split("/");
+        return components[components.length - 1];
+    }
+
+    protected File getTargetDir() {
+        return new File(new File(project.getBuild().getDirectory()), getName());
     }
 
     private void runCommand(List<String> args)

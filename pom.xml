@@ -35,6 +35,6 @@
     <modules>
         <module>rust-maven-plugin</module>
         <module>rust-maven-example</module>
-        <module>jar-jni-loader</module>
+        <module>jar-jni</module>
     </modules>
 </project>
