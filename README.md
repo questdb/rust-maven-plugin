@@ -2,7 +2,8 @@
 Build Rust Cargo crates within a Java Maven Project
 
 # Status
-Most things don't work yet.
+* Building, cleaning and bundling into a .jar now works.
+* Running Rust tests doesn't yet.
 
 # Dev Commands
 

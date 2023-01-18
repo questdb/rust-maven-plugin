@@ -59,7 +59,7 @@ public class CargoBuildMojo extends AbstractMojo {
     /**
      * Path to the `cargo` command. If unset or set to "cargo", uses $PATH.
      */
-    @Parameter(property = "cargo.path", defaultValue = "cargo")
+    @Parameter(property = "cargoPath", defaultValue = "cargo")
     private String cargoPath;
 
     /**
@@ -213,6 +213,12 @@ public class CargoBuildMojo extends AbstractMojo {
         if (!copyToDir.isAbsolute()) {
             copyToDir = new File(project.getBasedir(), copyTo);
         }
+        if (copyWithPlatformDir) {
+            final String osName = System.getProperty("os.name").toLowerCase();
+            final String osArch = System.getProperty("os.arch").toLowerCase();
+            final String platform = (osName + "-" + osArch).replace(' ', '_');
+            copyToDir = new File(copyToDir, platform);
+        }
         if (!copyToDir.exists()) {
             if (!copyToDir.mkdirs()) {
                 throw new MojoExecutionException("Failed to create directory " + copyToDir);
@@ -220,10 +226,6 @@ public class CargoBuildMojo extends AbstractMojo {
         }
         if (!copyToDir.isDirectory()) {
             throw new MojoExecutionException(copyToDir + " is not a directory");
-        }
-        if (copyWithPlatformDir) {
-            final String platform = (System.getProperty("os.name") + "_" + System.getProperty("os.arch")).toLowerCase();
-            copyToDir = new File(copyToDir, platform);
         }
         return copyToDir;
     }

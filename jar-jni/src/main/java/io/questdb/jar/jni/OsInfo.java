@@ -10,17 +10,11 @@ public enum OsInfo {
     OsInfo() {
         final String osName = System.getProperty("os.name").toLowerCase();
         final String osArch = System.getProperty("os.arch").toLowerCase();
-        this.platform = osName + "_" + osArch;
-        if (osName.contains("win")) {
-            this.libPrefix = "";
-            this.libSuffix = ".dll";
-        } else if (osName.contains("mac")) {
-            this.libPrefix = "lib";
-            this.libSuffix = ".dylib";
-        } else {
-            this.libPrefix = "lib";
-            this.libSuffix = ".so";
-        }
+        this.platform = (osName + "-" + osArch).replace(' ', '_');
+        this.libPrefix = osName.startsWith("windows") ? "" : "lib";
+        this.libSuffix = osName.startsWith("windows")
+                ? ".dll" : osName.contains("mac")
+                ? ".dylib" : ".so";
     }
 
     public String getPlatform() { return platform; }

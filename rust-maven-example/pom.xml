@@ -81,6 +81,12 @@
                             -->
 
                             <!--
+                                If you need to, you can customize the path to the Cargo command
+                                Otherwise by default it will be searched for in the PATH.
+                            -->
+                            <!-- <cargoPath>/custom/path/to/rust/bin/cargo</cargoPath> -->
+
+                            <!--
                                 The path to the Rust crate we want to build (which will contain a Cargo.toml).
                             -->
                             <path>src/main/rust/str-reverse</path>
@@ -91,51 +97,32 @@
                                 The default is to just call `cargo build` producing a debug build.
                                 Many of the other `cargo build` options are also supported.
                                 E.g. ` - - features` and ` - - no-default-features`.
-
-
                             -->
                             <release>true</release>
 
                             <!--
-                                Always build test code.
-                                Passes ` - - tests` to `cargo build`.
-                            -->
-                            <tests>true</tests>
-
-                            <!--
-                                Copy the generated binaries to the resources dir after a successful build.
+                                Copy the generated binaries to the "classes" directory in the build target.
                                 We use this path because it will be bundled automatically into the final jar.
                             -->
-                            <copyTo>src/main/resources/io/questdb/rust/maven/example/libs</copyTo>
+                            <copyTo>${project.build.directory}/classes/io/questdb/rust/maven/example/libs</copyTo>
 
                             <!--
-                                Further nest copy into a subdirectory named through the following expression:
-                                (System.getProperty("os.name") + "_" + System.getProperty("os.arch")).toLowerCase();
+                                Further nest copy into a child directory named through the following expression:
+
+                                    (System.getProperty("os.name") + "-" + System.getProperty("os.arch"))
+                                        .toLowerCase().replace(' ', '_')
                             -->
                             <copyWithPlatformDir>true</copyWithPlatformDir>
 
+                            <!--
+                                Environment variables used when calling `cargo build`.
+                            -->
                             <environmentVariables>
                                 <REVERSED_STR_PREFIX>Great scott! A reversed string!</REVERSED_STR_PREFIX>
                             </environmentVariables>
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-
-            <!--
-            The "clean" plugin is configured to remove the generated binaries from the "resources" dir.
-            -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>2.5</version>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>src/main/resources/io/questdb/rust/maven/example/libs</directory>
-                        </fileset>
-                    </filesets>
-                </configuration>
             </plugin>
         </plugins>
     </build>
