@@ -47,7 +47,7 @@ import java.util.concurrent.Executors;
 /**
  * An example of a Maven plugin.
  */
-@Mojo(name = "build", defaultPhase = LifecyclePhase.COMPILE)
+@Mojo(name = "build", defaultPhase = LifecyclePhase.COMPILE, threadSafe = true)
 public class CargoBuildMojo extends AbstractMojo {
 
     @Parameter(property = "project", readonly = true)
