@@ -13,7 +13,7 @@ To build the project and example:
 git clone https://github.com/questdb/rust-maven-plugin.git
 cd rust-maven-plugin
 mvn clean package
-java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar:./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.rust.maven.example.Main
+java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar:./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.example.rust.Main
 ```
 
 To run Maven goals directly from the command line.

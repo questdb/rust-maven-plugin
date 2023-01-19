@@ -22,7 +22,7 @@
  *
  ******************************************************************************/
 
-package io.questdb.rust.maven.plugin;
+package io.questdb.maven.rust;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -162,7 +162,7 @@ public class CargoBuildMojo extends AbstractMojo {
     }
 
     private File getTargetDir() {
-        return new File(new File(project.getBuild().getDirectory()), getName());
+        return new File(new File(new File(project.getBuild().getDirectory()), "rust-maven-plugin"), getName());
     }
 
     private void runCommand(List<String> args)

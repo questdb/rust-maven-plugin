@@ -44,14 +44,8 @@
     <dependencies>
         <dependency>
             <groupId>io.questdb</groupId>
-            <artifactId>rust-maven-plugin</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>io.questdb</groupId>
             <artifactId>jar-jni</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
@@ -66,7 +60,7 @@
             <plugin>
                 <groupId>io.questdb</groupId>
                 <artifactId>rust-maven-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>1.0.0-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <id>str-reverse</id>
@@ -104,7 +98,7 @@
                                 Copy the generated binaries to the "classes" directory in the build target.
                                 We use this path because it will be bundled automatically into the final jar.
                             -->
-                            <copyTo>${project.build.directory}/classes/io/questdb/rust/maven/example/libs</copyTo>
+                            <copyTo>${project.build.directory}/classes/io/questdb/example/rust/libs</copyTo>
 
                             <!--
                                 Further nest copy into a child directory named through the following expression:
@@ -118,7 +112,7 @@
                                 Additional environment variables used when calling `cargo build`.
                             -->
                             <environmentVariables>
-                                <REVERSED_STR_PREFIX>Great scott! A reversed string!</REVERSED_STR_PREFIX>
+                                <REVERSED_STR_PREFIX>Great Scott, A reversed string!</REVERSED_STR_PREFIX>
                             </environmentVariables>
                         </configuration>
                     </execution>

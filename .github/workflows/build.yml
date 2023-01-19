@@ -39,4 +39,4 @@ jobs:
         run: mvn package
 
       - name: Runnig the example
-        run: java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar${{ matrix.path-sep }}./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.rust.maven.example.Main
+        run: java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar${{ matrix.path-sep }}./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.example.rust.Main
