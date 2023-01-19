@@ -2,12 +2,27 @@ name: build
 on: [push]
 
 jobs:
-  linux:
-    runs-on: ubuntu-latest
+  build:
     strategy:
       matrix:
-        java-version: [8, 11, 17]
-    name: Linux + Java ${{ matrix.java-version }}
+        include:
+          - os: ubuntu-latest
+            java-version: 8
+            path-sep: ":"
+          - os: ubuntu-latest
+            java-version: 11
+            path-sep: ":"
+          - os: ubuntu-latest
+            java-version: 17
+            path-sep: ":"
+          - os: windows-latest
+            java-version: 11
+            path-sep: ";"
+          - os: macos-latest
+            java-version: 11
+            path-sep: ":"
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }} + Java ${{ matrix.java-version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -23,71 +38,5 @@ jobs:
       - name: Build with Maven
         run: mvn package
 
-      - name: Run the example
-        run: java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar:./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.rust.maven.example.Main
-  windows:
-    runs-on: windows-latest
-    name: Windows + Java 11
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Install Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: 11
-          cache: 'maven'
-
-      - name: Build with Maven
-        run: mvn package
-
-      - name: Run the example
-        run: java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar;./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.rust.maven.example.Main
-  mac:
-    runs-on: macos-latest
-    name: MacOS + Java 11
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Install Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: 11
-          cache: 'maven'
-
-      - name: Build with Maven
-        run: mvn package
-
-      - name: Run the example
-        run: java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar:./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.rust.maven.example.Main
-  # freebsd:
-  #   # https://github.com/marketplace/actions/freebsd-vm
-  #   runs-on: macos-12
-  #   name: FreeBSD + Java 11
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - name: Test in FreeBSD
-  #     id: test
-  #     uses: vmactions/freebsd-vm@v0
-  #     with:
-  #       usesh: true
-  #       prepare: |
-  #         pkg install -y curl
-  #         pkg install -y openjdk[11]
-  #         pkg install -y maven
-  #       run: |
-  #         freebsd-version
-  #         pwd
-  #         env
-  #         ls -lah
-  #         java --version
-  #         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup.sh
-  #         chmod +x rustup.sh
-  #         ./rustup.sh -y --profile minimal
-  #         rm rustup.sh
-  #         mvn package
-  #         java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar:./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.rust.maven.example.Main
-        
+      - name: Runnig the example
+        run: java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar${{ matrix.path-sep }}./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.rust.maven.example.Main
