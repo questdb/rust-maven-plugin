@@ -22,3 +22,6 @@ jobs:
 
       - name: Build with Maven
         run: mvn package
+
+      - name: Run the example
+        run: java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar:./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.rust.maven.example.Main
