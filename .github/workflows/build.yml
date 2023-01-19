@@ -63,27 +63,28 @@ jobs:
 
       - name: Run the example
         run: java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar:./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.rust.maven.example.Main
-  freebsd:
-    runs-on: macos-12
-    name: FreeBSD + Java 11
-    steps:
-    - uses: actions/checkout@v3
-    - name: Test in FreeBSD
-      id: test
-      uses: vmactions/freebsd-vm@v0
-      with:
-        usesh: true
-        prepare: |
-          pkg install -y curl
-          pkg install -y openjdk[11]
-          pkg install -y maven
+  # freebsd:
+  #   # https://github.com/marketplace/actions/freebsd-vm
+  #   runs-on: macos-12
+  #   name: FreeBSD + Java 11
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - name: Test in FreeBSD
+  #     id: test
+  #     uses: vmactions/freebsd-vm@v0
+  #     with:
+  #       usesh: true
+  #       prepare: |
+  #         pkg install -y curl
+  #         pkg install -y openjdk[11]
+  #         pkg install -y maven
 
-        run: |
-          freebsd-version
-          pwd
-          env
-          ls -lah
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -y', '--profile', 'minimal
-          mvn package
-          java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar:./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.rust.maven.example.Main
+  #       run: |
+  #         freebsd-version
+  #         pwd
+  #         env
+  #         ls -lah
+  #         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -y', '--profile', 'minimal
+  #         mvn package
+  #         java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar:./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.rust.maven.example.Main
         
