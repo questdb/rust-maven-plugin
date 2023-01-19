@@ -1,5 +1,0 @@
-# Compiler output
-**/target/
-
-# JNI dynamic libs
-rust-maven-example/src/main/resources/io/questdb/rust/maven/example/libs/**

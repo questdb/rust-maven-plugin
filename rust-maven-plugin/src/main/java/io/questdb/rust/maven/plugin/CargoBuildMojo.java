@@ -252,7 +252,7 @@ public class CargoBuildMojo extends AbstractMojo {
             return;
         }
 
-        getLog().info("Copying artifacts to " + Shlex.quote(copyTo));
+        getLog().info("Copying " + getName() + "'s cdylib to " + Shlex.quote(copyTo));
 
         final File getArtifactPath = findArtifactPath();
         final File copyToDir = getCopyToDir();
@@ -260,8 +260,11 @@ public class CargoBuildMojo extends AbstractMojo {
         try {
             Files.copy(getArtifactPath.toPath(), copyToPath.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            throw new MojoExecutionException("Failed to copy " + getArtifactPath + " to " + copyToPath, e);
+            throw new MojoExecutionException(
+                    "Failed to copy " + getArtifactPath + " to " + copyToPath + ":" + e.getMessage());
         }
+
+        getLog().info("Copied " + Shlex.quote(getArtifactPath.getName()));
     }
 
     @Override

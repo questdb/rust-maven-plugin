@@ -59,9 +59,9 @@
         <plugins>
             <!--
                 The Rust Maven Plugin
-                Here it'll build the `str-reverse` crate and place the cdylib in a subdirectory of the "resources" dir.
-                The binary will be auto-bundled into the final jar.
-                Make sure to configure your `.gitignore` appropriately (See rust-maven-example/.gitignore).
+
+                Here it'll build the `str-reverse` crate and place the cdylib in the target's "classes" directory.
+                Placing it there will have Maven automatically bundle the compiled code in the Jar.
             -->
             <plugin>
                 <groupId>io.questdb</groupId>
@@ -115,7 +115,7 @@
                             <copyWithPlatformDir>true</copyWithPlatformDir>
 
                             <!--
-                                Environment variables used when calling `cargo build`.
+                                Additional environment variables used when calling `cargo build`.
                             -->
                             <environmentVariables>
                                 <REVERSED_STR_PREFIX>Great scott! A reversed string!</REVERSED_STR_PREFIX>
