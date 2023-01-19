@@ -78,13 +78,16 @@ jobs:
   #         pkg install -y curl
   #         pkg install -y openjdk[11]
   #         pkg install -y maven
-
   #       run: |
   #         freebsd-version
   #         pwd
   #         env
   #         ls -lah
-  #         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -y', '--profile', 'minimal
+  #         java --version
+  #         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup.sh
+  #         chmod +x rustup.sh
+  #         ./rustup.sh -y --profile minimal
+  #         rm rustup.sh
   #         mvn package
   #         java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar:./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.rust.maven.example.Main
         

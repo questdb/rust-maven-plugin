@@ -27,6 +27,7 @@ package io.questdb.rust.maven.plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
+import java.io.File;
 import java.util.HashMap;
 
 public final class CargoInstalledChecker {
@@ -81,7 +82,7 @@ public final class CargoInstalledChecker {
             if (cargoPath.equals("cargo")) {
                 error
                         .append("Rust's `cargo` not found in PATH=")
-                        .append(Shlex.quote(System.getenv("PATH")));
+                        .append(Shlex.quote(String.join(File.pathSeparator, System.getenv("PATH"))));
             } else {
                 error
                         .append("Rust's `cargo` not found at ")
