@@ -1,3 +1,5 @@
+<img src="./artwork/logo.svg">
+
 # rust-maven-plugin
 Build Rust Cargo crates within a Java Maven Project
 
