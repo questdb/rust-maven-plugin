@@ -30,7 +30,7 @@ The use case is to simplify the build process of
 
 # Status
 * Pre-production:
-  * Building, cleaning and bundling into a `.jar` now works.
+  * Building, cleaning, and bundling into a `.jar` now works.
   * Running Rust tests (calling `cargo test`) isn't implemented yet.
   * Not yet available on maven central:
     In the meantime `cd rust-maven-plugin && mvn install`.
