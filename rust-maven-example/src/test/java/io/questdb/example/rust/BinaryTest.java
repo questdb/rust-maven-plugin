@@ -24,20 +24,34 @@
 
 package io.questdb.example.rust;
 
-import io.questdb.jar.jni.JarJniLoader;
+import static org.junit.Assert.assertEquals;
 
-public class Main {
-    public static native String reversedString(String str);
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
-    public static void main(String[] args) {
-        JarJniLoader.loadLib(
-                Main.class,
+import org.junit.Test;
 
-                // A platform-specific path is automatically suffixed to path below.
-                "/io/questdb/example/rust/libs",
+public class BinaryTest {
 
-                // The "lib" prefix and ".so|.dynlib|.dll" suffix are added automatically as needed.
-                "str_reverse");
-        System.out.println(reversedString("Hello World!"));
+    @Test
+    public void testBinary() throws Exception {
+        File binaryFile = new File("target/bin/str-reverse-binary");
+
+        Process process = new ProcessBuilder(
+                Arrays.asList(
+                        binaryFile.getAbsolutePath(),
+                        "Hello World!"))
+                .start();
+
+        List<String> output = new BufferedReader(new InputStreamReader(process.getInputStream()))
+                .lines()
+                .collect(Collectors.toList());
+
+        assertEquals(0, process.waitFor());
+        assertEquals(Arrays.asList("!dlroW olleH"), output);
     }
 }

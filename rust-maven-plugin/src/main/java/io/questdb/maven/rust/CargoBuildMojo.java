@@ -238,12 +238,16 @@ public class CargoBuildMojo extends AbstractMojo {
         final String libSuffix = osName.startsWith("windows")
                 ? ".dll" : osName.contains("mac")
                 ? ".dylib" : ".so";
-        final String artifactName = libPrefix + getName().replace('-', '_') + libSuffix;
-        final File artifactPath = new File(targetDir, buildType + "/" + artifactName);
-        if (!artifactPath.exists()) {
-            throw new MojoExecutionException("Artifact not found: " + Shlex.quote(artifactPath.toString()));
+        final String libraryName = libPrefix + getName().replace('-', '_') + libSuffix;
+        final File libraryPath = new File(targetDir, buildType + "/" + libraryName);
+        final File binaryPath = new File(targetDir, buildType + "/" + getName());
+        if (libraryPath.exists()) {
+        	return libraryPath;
+        } else if (binaryPath.exists()) {
+        	return binaryPath;
+        } else {
+        	throw new MojoExecutionException("Could not find library: " + Shlex.quote(libraryPath.toString()) + " or binary: " + Shlex.quote(binaryPath.toString()));
         }
-        return artifactPath;
     }
 
     private void copyArtifacts() throws MojoExecutionException {

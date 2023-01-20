@@ -18,3 +18,8 @@ hs_err_pid*
 
 # Compiler output
 **/target/
+
+# Eclipse files
+**/.project
+**/.classpath
+**/.settings

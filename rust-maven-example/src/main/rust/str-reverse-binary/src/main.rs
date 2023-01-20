@@ -22,22 +22,21 @@
  *
  ******************************************************************************/
 
-package io.questdb.example.rust;
+use std::env;
+use std::process::exit;
 
-import io.questdb.jar.jni.JarJniLoader;
+fn main() {
+    let args: Vec<String> = env::args().collect();
 
-public class Main {
-    public static native String reversedString(String str);
-
-    public static void main(String[] args) {
-        JarJniLoader.loadLib(
-                Main.class,
-
-                // A platform-specific path is automatically suffixed to path below.
-                "/io/questdb/example/rust/libs",
-
-                // The "lib" prefix and ".so|.dynlib|.dll" suffix are added automatically as needed.
-                "str_reverse");
-        System.out.println(reversedString("Hello World!"));
+    match args.len() {
+        2 => {
+            let reversed: String = args[1].chars().rev().collect();
+            println!("{}", reversed);
+            exit(exitcode::OK);
+        },
+        _ => {
+            eprintln!("Error: Must provide a single string argument.");
+            exit(exitcode::CONFIG);
+        }
     }
 }

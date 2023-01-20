@@ -24,20 +24,22 @@
 
 package io.questdb.example.rust;
 
-import io.questdb.jar.jni.JarJniLoader;
+import static org.junit.Assert.assertEquals;
 
-public class Main {
-    public static native String reversedString(String str);
+import java.io.File;
 
-    public static void main(String[] args) {
-        JarJniLoader.loadLib(
-                Main.class,
+import org.junit.Test;
 
-                // A platform-specific path is automatically suffixed to path below.
-                "/io/questdb/example/rust/libs",
+import io.questdb.jar.jni.LibInfo;
 
-                // The "lib" prefix and ".so|.dynlib|.dll" suffix are added automatically as needed.
-                "str_reverse");
-        System.out.println(reversedString("Hello World!"));
+public class LibTest {
+
+    @Test
+    public void testLibrary() {
+        File libraryFile = new File("target/rust-maven-plugin/str-reverse/release/", new LibInfo("str_reverse").getFullName());
+
+        System.load(libraryFile.getAbsolutePath());
+
+        assertEquals("Great Scott, A reversed string!: !dlroW olleH", Main.reversedString("Hello World!"));
     }
 }
