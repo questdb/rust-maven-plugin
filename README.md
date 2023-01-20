@@ -12,7 +12,7 @@ The use case is to simplify the build process of
 
 * Calls `cargo build` as part of a `mvn compile` step.
 
-* Helpfully informs how to install Rust if can't find it.
+* Helpfully informs how to install Rust if Rust is not found.
 
 * Uses Maven's target directory (i.e. `${project.build.directory}`) as the
   `cargo build --target-dir` so `mvn clean` also cleans the Rust crate without
