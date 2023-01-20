@@ -10,13 +10,17 @@ The use case is to simplify the build process of
 
 # Features
 
+The plugin provides the following features:
+
 * Calls `cargo build` as part of a `mvn compile` step.
 
-* Helpfully informs how to install Rust if Rust is not found.
+* If Rust isn't found, points users to https://www.rust-lang.org/tools/install.
 
-* Uses Maven's target directory (i.e. `${project.build.directory}`) as the
-  `cargo build --target-dir` so `mvn clean` also cleans the Rust crate without
-  additional setup in your `pom.xml`.
+* Builds inside Maven's target directory:
+  * Passes `${project.build.directory}/rust-maven-plugin/${crate_name}` as
+    `cargo build --target-dir`.
+  * Thus, `mvn clean` also cleans the Rust crates without additional `pom.xml`
+    setup.
 
 * Optionally:
   * Can be configured to copy the compiled cdylib(s) to the
@@ -27,6 +31,10 @@ The use case is to simplify the build process of
     a helper java library to load the libs from the JAR using a sub-directory
     per `os.name`/`os.arch` so the JAR can contain binaries for multiple
     platforms.
+
+# Example
+See the [`rust-maven-example`](rust-maven-example/) directory for a working
+example.
 
 # Status
 * Pre-production:
@@ -56,9 +64,6 @@ cd rust-maven-plugin
 mvn install
 mvn io.questdb:rust-maven-plugin:build -Drelease=true
 ```
-
-# Example
-See `rust-maven-example` directory for a working example.
 
 # Special thanks
 
