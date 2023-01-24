@@ -36,8 +36,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -161,8 +159,8 @@ public class CargoBuildMojo extends AbstractMojo {
         return components[components.length - 1];
     }
 
-    private File getTargetDir() {
-        return new File(new File(new File(project.getBuild().getDirectory()), "rust-maven-plugin"), getName());
+    private File getTargetDir(String name) {
+        return new File(new File(new File(project.getBuild().getDirectory()), "rust-maven-plugin"), name);
     }
 
     private void runCommand(List<String> args)
@@ -230,54 +228,15 @@ public class CargoBuildMojo extends AbstractMojo {
         return copyToDir;
     }
 
-    private File findArtifactPath() throws MojoExecutionException {
-        final File targetDir = getTargetDir();
-        final String buildType = release ? "release" : "debug";
-        final String osName = System.getProperty("os.name").toLowerCase();
-        final String libPrefix = osName.startsWith("windows") ? "" : "lib";
-        final String libSuffix = osName.startsWith("windows")
-                ? ".dll" : osName.contains("mac")
-                ? ".dylib" : ".so";
-        final String libraryName = libPrefix + getName().replace('-', '_') + libSuffix;
-        final File libraryPath = new File(targetDir, buildType + "/" + libraryName);
-        final File binaryPath = new File(targetDir, buildType + "/" + getName());
-        if (libraryPath.exists()) {
-        	return libraryPath;
-        } else if (binaryPath.exists()) {
-        	return binaryPath;
-        } else {
-        	throw new MojoExecutionException("Could not find library: " + Shlex.quote(libraryPath.toString()) + " or binary: " + Shlex.quote(binaryPath.toString()));
-        }
-    }
-
-    private void copyArtifacts() throws MojoExecutionException {
-        if (copyTo == null) {
-            getLog().info("Not copying artifacts <copyTo> is not set");
-            return;
-        }
-
-        getLog().info("Copying " + getName() + "'s cdylib to " + Shlex.quote(copyTo));
-
-        final File getArtifactPath = findArtifactPath();
-        final File copyToDir = getCopyToDir();
-        final File copyToPath = new File(copyToDir, getArtifactPath.getName());
-        try {
-            Files.copy(getArtifactPath.toPath(), copyToPath.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new MojoExecutionException(
-                    "Failed to copy " + getArtifactPath + " to " + copyToPath + ":" + e.getMessage());
-        }
-
-        getLog().info("Copied " + Shlex.quote(getArtifactPath.getName()));
-    }
-
     @Override
     public void execute() throws MojoExecutionException {
         List<String> args = new ArrayList<>();
         args.add("build");
 
+        final String name = getName();
+        final File targetDir = getTargetDir(name);
         args.add("--target-dir");
-        args.add(getTargetDir().getAbsolutePath());
+        args.add(targetDir.getAbsolutePath());
 
         if (release) {
             args.add("--release");
@@ -304,6 +263,11 @@ public class CargoBuildMojo extends AbstractMojo {
             Collections.addAll(args, extraArgs);
         }
         cargo(args);
-        copyArtifacts();
+        
+        // if/when --out-dir is stabilized then the outputRedirector function should be replaced with just the following args:
+        // args.add("--out-dir")
+        // args.add(getCopyToDir());
+        
+        new ManualOutputRedirector(getLog(), name, release, getPath(), targetDir, getCopyToDir()).copyArtifacts();
     }
 }
