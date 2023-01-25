@@ -23,20 +23,20 @@
  ******************************************************************************/
 
 use std::env;
-use std::process::exit;
+use std::process::ExitCode;
 
-fn main() {
+fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
 
     match args.len() {
         2 => {
             let reversed: String = args[1].chars().rev().collect();
             println!("{}", reversed);
-            exit(exitcode::OK);
+            ExitCode::SUCCESS
         },
         _ => {
             eprintln!("Error: Must provide a single string argument.");
-            exit(exitcode::CONFIG);
+            ExitCode::FAILURE
         }
     }
 }

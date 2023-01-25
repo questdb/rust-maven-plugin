@@ -26,20 +26,12 @@ package io.questdb.example.rust;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
-
 import org.junit.Test;
-
-import io.questdb.jar.jni.LibInfo;
 
 public class LibTest {
 
     @Test
     public void testLibrary() {
-        File libraryFile = new File("target/rust-maven-plugin/str-reverse/release/", new LibInfo("str_reverse").getFullName());
-
-        System.load(libraryFile.getAbsolutePath());
-
         assertEquals("Great Scott, A reversed string!: !dlroW olleH", Main.reversedString("Hello World!"));
     }
 }

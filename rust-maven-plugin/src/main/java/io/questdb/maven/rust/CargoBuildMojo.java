@@ -159,8 +159,8 @@ public class CargoBuildMojo extends AbstractMojo {
         return components[components.length - 1];
     }
 
-    private File getTargetDir(String name) {
-        return new File(new File(new File(project.getBuild().getDirectory()), "rust-maven-plugin"), name);
+    private File getTargetDir() {
+        return new File(new File(new File(project.getBuild().getDirectory()), "rust-maven-plugin"), getName());
     }
 
     private void runCommand(List<String> args)
@@ -233,10 +233,8 @@ public class CargoBuildMojo extends AbstractMojo {
         List<String> args = new ArrayList<>();
         args.add("build");
 
-        final String name = getName();
-        final File targetDir = getTargetDir(name);
         args.add("--target-dir");
-        args.add(targetDir.getAbsolutePath());
+        args.add(getTargetDir().getAbsolutePath());
 
         if (release) {
             args.add("--release");
@@ -268,6 +266,6 @@ public class CargoBuildMojo extends AbstractMojo {
         // args.add("--out-dir")
         // args.add(getCopyToDir());
         
-        new ManualOutputRedirector(getLog(), name, release, getPath(), targetDir, getCopyToDir()).copyArtifacts();
+        new ManualOutputRedirector(getLog(), getName(), release, getPath(), getTargetDir(), getCopyToDir()).copyArtifacts();
     }
 }

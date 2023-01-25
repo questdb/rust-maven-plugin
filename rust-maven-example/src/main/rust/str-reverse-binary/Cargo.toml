@@ -2,6 +2,3 @@
 name = "str-reverse-binary"
 version = "0.1.0"
 edition = "2021"
-
-[dependencies]
-exitcode = "1.1.2"

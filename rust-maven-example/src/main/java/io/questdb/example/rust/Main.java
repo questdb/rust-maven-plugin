@@ -29,7 +29,7 @@ import io.questdb.jar.jni.JarJniLoader;
 public class Main {
     public static native String reversedString(String str);
 
-    public static void main(String[] args) {
+    static {
         JarJniLoader.loadLib(
                 Main.class,
 
@@ -38,6 +38,9 @@ public class Main {
 
                 // The "lib" prefix and ".so|.dynlib|.dll" suffix are added automatically as needed.
                 "str_reverse");
+    }
+
+    public static void main(String[] args) {
         System.out.println(reversedString("Hello World!"));
     }
 }
