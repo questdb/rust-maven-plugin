@@ -36,8 +36,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -230,43 +228,6 @@ public class CargoBuildMojo extends AbstractMojo {
         return copyToDir;
     }
 
-    private File findArtifactPath() throws MojoExecutionException {
-        final File targetDir = getTargetDir();
-        final String buildType = release ? "release" : "debug";
-        final String osName = System.getProperty("os.name").toLowerCase();
-        final String libPrefix = osName.startsWith("windows") ? "" : "lib";
-        final String libSuffix = osName.startsWith("windows")
-                ? ".dll" : osName.contains("mac")
-                ? ".dylib" : ".so";
-        final String artifactName = libPrefix + getName().replace('-', '_') + libSuffix;
-        final File artifactPath = new File(targetDir, buildType + "/" + artifactName);
-        if (!artifactPath.exists()) {
-            throw new MojoExecutionException("Artifact not found: " + Shlex.quote(artifactPath.toString()));
-        }
-        return artifactPath;
-    }
-
-    private void copyArtifacts() throws MojoExecutionException {
-        if (copyTo == null) {
-            getLog().info("Not copying artifacts <copyTo> is not set");
-            return;
-        }
-
-        getLog().info("Copying " + getName() + "'s cdylib to " + Shlex.quote(copyTo));
-
-        final File getArtifactPath = findArtifactPath();
-        final File copyToDir = getCopyToDir();
-        final File copyToPath = new File(copyToDir, getArtifactPath.getName());
-        try {
-            Files.copy(getArtifactPath.toPath(), copyToPath.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new MojoExecutionException(
-                    "Failed to copy " + getArtifactPath + " to " + copyToPath + ":" + e.getMessage());
-        }
-
-        getLog().info("Copied " + Shlex.quote(getArtifactPath.getName()));
-    }
-
     @Override
     public void execute() throws MojoExecutionException {
         List<String> args = new ArrayList<>();
@@ -300,6 +261,11 @@ public class CargoBuildMojo extends AbstractMojo {
             Collections.addAll(args, extraArgs);
         }
         cargo(args);
-        copyArtifacts();
+        
+        // if/when --out-dir is stabilized then the outputRedirector function should be replaced with just the following args:
+        // args.add("--out-dir")
+        // args.add(getCopyToDir());
+        
+        new ManualOutputRedirector(getLog(), getName(), release, getPath(), getTargetDir(), getCopyToDir()).copyArtifacts();
     }
 }
