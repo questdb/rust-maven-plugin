@@ -12,9 +12,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.tomlj.Toml;
+import org.tomlj.TomlTable;
 
 import com.google.common.collect.Sets;
-import com.moandjiezana.toml.Toml;
 
 public class ManualOutputRedirectorTest {
     
@@ -30,7 +31,7 @@ public class ManualOutputRedirectorTest {
     public void testFindDefaultBin() throws Exception {
         ManualOutputRedirector testObject = new ManualOutputRedirector(null, "dummy", false, null, tempTargetDir.getRoot(), null);
                 
-        Toml toml = new Toml().read("[package]\n"
+        TomlTable toml = Toml.parse("[package]\n"
                 + "name = \"test\"\n"
                 + "version = \"0.1.0\"\n"
                 + "edition = \"2021\"");
@@ -46,7 +47,7 @@ public class ManualOutputRedirectorTest {
     public void testFindDefaultLib() throws Exception {
         ManualOutputRedirector testObject = new ManualOutputRedirector(null, "dummy", false, null, tempTargetDir.getRoot(), null);
                 
-        Toml toml = new Toml().read("[package]\n"
+        TomlTable toml = Toml.parse("[package]\n"
                 + "name = \"test\"\n"
                 + "version = \"0.1.0\"\n"
                 + "edition = \"2021\"");
@@ -62,7 +63,7 @@ public class ManualOutputRedirectorTest {
     public void testFindDefaultLibWithName() throws Exception {
         ManualOutputRedirector testObject = new ManualOutputRedirector(null, "dummy", false, null, tempTargetDir.getRoot(), null);
                 
-        Toml toml = new Toml().read("[package]\n"
+        TomlTable toml = Toml.parse("[package]\n"
                 + "name = \"test\"\n"
                 + "version = \"0.1.0\"\n"
                 + "edition = \"2021\"\n"
@@ -80,7 +81,7 @@ public class ManualOutputRedirectorTest {
     public void testFindDefaultBinAndLibrary() throws Exception {
         ManualOutputRedirector testObject = new ManualOutputRedirector(null, "dummy", false, null, tempTargetDir.getRoot(), null);
                 
-        Toml toml = new Toml().read("[package]\n"
+        TomlTable toml = Toml.parse("[package]\n"
                 + "name = \"test\"\n"
                 + "version = \"0.1.0\"\n"
                 + "edition = \"2021\"");
@@ -95,7 +96,7 @@ public class ManualOutputRedirectorTest {
     public void testFindDefaultBinExplicit() throws Exception {
         ManualOutputRedirector testObject = new ManualOutputRedirector(null, "dummy", false, null, tempTargetDir.getRoot(), null);
                 
-        Toml toml = new Toml().read("[package]\n"
+        TomlTable toml = Toml.parse("[package]\n"
                 + "name = \"test\"\n"
                 + "version = \"0.1.0\"\n"
                 + "edition = \"2021\"\n"
@@ -114,7 +115,7 @@ public class ManualOutputRedirectorTest {
     public void testFindMixed() throws Exception {
         ManualOutputRedirector testObject = new ManualOutputRedirector(null, "dummy", false, null, tempTargetDir.getRoot(), null);
                 
-        Toml toml = new Toml().read("[package]\n"
+        TomlTable toml = Toml.parse("[package]\n"
                 + "name = \"test\"\n"
                 + "version = \"0.1.0\"\n"
                 + "edition = \"2021\"\n"
@@ -147,7 +148,7 @@ public class ManualOutputRedirectorTest {
         // this should fail upstream, but for completeness test the bad Cargo.toml edge cases
         
         // missing [package]
-        Toml toml1 = new Toml().read("name = \"test\"\n"
+        TomlTable toml1 = Toml.parse("name = \"test\"\n"
                 + "version = \"0.1.0\"\n"
                 + "edition = \"2021\"");
           
@@ -155,7 +156,7 @@ public class ManualOutputRedirectorTest {
         assertThrows(MojoExecutionException.class, () -> testObject.getArtifacts(toml1));
         
         // missing name in [[bin]] section
-        Toml toml2 = new Toml().read("[package]\n"
+        TomlTable toml2 = Toml.parse("[package]\n"
                 + "name = \"test\"\n"
                 + "version = \"0.1.0\"\n"
                 + "edition = \"2021\"\n"

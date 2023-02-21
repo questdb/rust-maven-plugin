@@ -35,7 +35,9 @@ import java.util.Set;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
-import com.moandjiezana.toml.Toml;
+import org.tomlj.Toml;
+import org.tomlj.TomlArray;
+import org.tomlj.TomlTable;
 
 final class ManualOutputRedirector {
 
@@ -55,20 +57,21 @@ final class ManualOutputRedirector {
         this.copyToDir = copyToDir;
     }
 
-    void copyArtifacts() throws MojoExecutionException {
-        if (copyToDir == null) {
-            log.info("Not copying artifacts <copyTo> is not set");
-            return;
-        }
-
-        log.info("Copying " + name + "'s artifacts to " + Shlex.quote(copyToDir.getAbsolutePath()));
-
+    private static TomlTable readCargoToml(File path) throws MojoExecutionException {
         final File tomlFile = new File(path, "Cargo.toml");
         if (!tomlFile.exists()) {
             throw new MojoExecutionException("The <path> arg might be incorrect. Cargo.toml file expected under: " + path);
         }
-        final Toml toml = new Toml().read(tomlFile);
 
+        try {
+            return Toml.parse(tomlFile.toPath());
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to parse Cargo.toml file: " + e.getMessage());
+        }
+    }
+
+    void copyArtifacts() throws MojoExecutionException {
+        final TomlTable toml = readCargoToml(path);
         final Set<File> artifacts = getArtifacts(toml);
         for (File artifact : artifacts) {
             final File copyToPath = new File(copyToDir, artifact.getName());
@@ -81,14 +84,15 @@ final class ManualOutputRedirector {
         }
     }
 
-    Set<File> getArtifacts(Toml toml) throws MojoExecutionException {
+    Set<File> getArtifacts(TomlTable toml) throws MojoExecutionException {
         final String buildType = release ? "release" : "debug";
 
-        Toml mainPackage = toml.getTable("package");
+        TomlTable mainPackage = toml.getTable("package");
         if (mainPackage == null) {
             throw new MojoExecutionException("Malformed Cargo.toml file, expected a [package] section, but was missing.");
         }
-        String packageName = mainPackage.getString("name", name);
+        // Split this out and load into a `String name` in `CargoToml`.
+        String packageName = mainPackage.getString("name", () -> name);
 
         final Set<File> artifacts = new HashSet<>();
 
@@ -105,9 +109,10 @@ final class ManualOutputRedirector {
         }
 
         // other [[bin]]
-        final List<Toml> bins = toml.getTables("bin");
+        final TomlArray bins = toml.getArray(packageName);
         if (bins != null) {
-            for (Toml bin : bins) {
+            for (int index = 0; index < bins.size(); ++index) {
+                final TomlTable bin = bins.getTable(index);
                 final String binName = bin.getString("name");
                 if (binName != null) {
                     final File binPath = new File(targetDir, buildType + "/" + binName);
@@ -129,8 +134,8 @@ final class ManualOutputRedirector {
         return artifacts;
     }
 
-    private File getLibraryPath(Toml toml, String packageName, String buildType) throws MojoExecutionException {
-        final Toml libSection = toml.getTable("lib");
+    private File getLibraryPath(TomlTable toml, String packageName, String buildType) throws MojoExecutionException {
+        final TomlTable libSection = toml.getTable("lib");
 
         // TODO: 
         // For now we only support system dynamic libraries (crate_type = cdylib).
@@ -138,7 +143,7 @@ final class ManualOutputRedirector {
         // This gets even more complicated when you consider the dynamic create_types like: crate_type = "lib"
         // Hopefully, --out-dir will allow us to avoid all this complexity in the future
         final String libraryName = getOSspecificLibraryName(
-                libSection == null ? packageName : libSection.getString("name", packageName));
+                libSection == null ? packageName : libSection.getString("name", () -> packageName));
         final File libraryPath = new File(targetDir, buildType + "/" + libraryName);
 
         if (libraryPath.exists()) {
