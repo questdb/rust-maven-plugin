@@ -64,6 +64,7 @@ public class Crate {
     private final Path targetDir;
     private final Params params;
     private final TomlTable cargoToml;
+    private final String packageName;
 
     public Crate(
             Path crateRoot,
@@ -85,6 +86,18 @@ public class Crate {
             throw new MojoExecutionException(
                 "Failed to parse Cargo.toml file: " + e.getMessage());
         }
+
+        try {
+            packageName = cargoToml.getString("package.name");
+            if (packageName == null) {
+                throw new MojoExecutionException(
+                    "Missing required `package.name` from Cargo.toml file");
+            }
+        } catch (TomlInvalidTypeException e) {
+            throw new MojoExecutionException(
+                "Failed to extract `package.name` from Cargo.toml file: " +
+                e.getMessage());
+        }
     }
 
     public void setLog(Log log) {
@@ -93,21 +106,6 @@ public class Crate {
 
     private String getDirName() {
         return crateRoot.getFileName().toString();
-    }
-
-    private String getPackageName() throws MojoExecutionException {
-        try {
-            String name = cargoToml.getString("package.name");
-            if (name == null) {
-                throw new MojoExecutionException(
-                    "Missing required `package.name` from Cargo.toml file");
-            }
-            return name;
-        } catch (TomlInvalidTypeException e) {
-            throw new MojoExecutionException(
-                "Failed to extract `package.name` from Cargo.toml file: " +
-                e.getMessage());
-        }
     }
 
     private String getProfile() {
@@ -148,7 +146,7 @@ public class Crate {
 
         // The name might be missing, but the lib section might be present.
         if ((name == null) && hasCdylib()) {
-            name = getPackageName();
+            name = packageName;
         }
 
         return name;
@@ -160,7 +158,7 @@ public class Crate {
         String defaultBin = null;
         if (Files.exists(crateRoot.resolve("src").resolve("main.rs"))) {
             // Expecting default bin, given that there's no lib.
-            defaultBin = getPackageName();
+            defaultBin = packageName;
             binNames.add(defaultBin);
         }
 
@@ -198,6 +196,22 @@ public class Crate {
                 throw new MojoExecutionException(
                     "Failed to extract `bin`s from Cargo.toml file: " +
                     "missing `name` key at `bin` with index " + index);
+            }
+
+            String path = null;
+            try {
+                path = bin.getString("path");
+            } catch (TomlInvalidTypeException e) {
+                throw new MojoExecutionException(
+                    "Failed to extract `bin`s from Cargo.toml file: " +
+                    "expected a string at index " + index + " `path` key");
+            }
+
+            // Handle special case where the default bin is renamed.
+            if ((path != null) && path.equals("src/main.rs")) {
+                defaultBin = name;
+                binNames.remove(0);
+                binNames.add(0, defaultBin);
             }
 
             // This `[[bin]]` entry just configures the default bin.
