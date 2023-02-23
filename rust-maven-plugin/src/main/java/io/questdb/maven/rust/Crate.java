@@ -1,3 +1,27 @@
+/*******************************************************************************
+ *     ___                  _   ____  ____
+ *    / _ \ _   _  ___  ___| |_|  _ \| __ )
+ *   | | | | | | |/ _ \/ __| __| | | |  _ \
+ *   | |_| | |_| |  __/\__ \ |_| |_| | |_) |
+ *    \__\_\\__,_|\___||___/\__|____/|____/
+ *
+ *  Copyright (c) 2014-2019 Appsicle
+ *  Copyright (c) 2019-2023 QuestDB
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
 package io.questdb.maven.rust;
 
 import java.io.BufferedReader;
@@ -15,6 +39,10 @@ import java.util.concurrent.Executors;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
+import org.tomlj.Toml;
+import org.tomlj.TomlArray;
+import org.tomlj.TomlInvalidTypeException;
+import org.tomlj.TomlTable;
 
 /** Controls running tasks on a Rust crate. */
 public class Crate {
@@ -34,8 +62,8 @@ public class Crate {
     private Log log;
     private final Path crateRoot;
     private final Path targetDir;
-    private final CargoToml cargoToml;
     private final Params params;
+    private final TomlTable cargoToml;
 
     public Crate(
             Path crateRoot,
@@ -44,8 +72,19 @@ public class Crate {
         this.log = nullLog();
         this.crateRoot = crateRoot;
         this.targetDir = targetRootDir.resolve(getDirName());
-        this.cargoToml = CargoToml.parse(this.crateRoot);
         this.params = params;
+
+        final Path tomlPath = crateRoot.resolve("Cargo.toml");
+        if (!Files.exists(tomlPath, LinkOption.NOFOLLOW_LINKS)) {
+            throw new MojoExecutionException(
+                "Cargo.toml file expected under: " + crateRoot);
+        }
+        try {
+            this.cargoToml = Toml.parse(tomlPath);
+        } catch (IOException e) {
+            throw new MojoExecutionException(
+                "Failed to parse Cargo.toml file: " + e.getMessage());
+        }
     }
 
     public void setLog(Log log) {
@@ -56,15 +95,126 @@ public class Crate {
         return crateRoot.getFileName().toString();
     }
 
+    private String getPackageName() throws MojoExecutionException {
+        try {
+            String name = cargoToml.getString("package.name");
+            if (name == null) {
+                throw new MojoExecutionException(
+                    "Missing required `package.name` from Cargo.toml file");
+            }
+            return name;
+        } catch (TomlInvalidTypeException e) {
+            throw new MojoExecutionException(
+                "Failed to extract `package.name` from Cargo.toml file: " +
+                e.getMessage());
+        }
+    }
+
     private String getProfile() {
         return params.release ? "release" : "debug";
+    }
+
+    public boolean hasCdylib() {
+        try {
+            TomlArray crateTypes = cargoToml.getArray("lib.crate-type");
+            if (crateTypes == null) {
+                return false;
+            }
+
+            for (int index = 0; index < crateTypes.size(); index++) {
+                String crateType = crateTypes.getString(index);
+                if ((crateType != null) && crateType.equals("cdylib")) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        catch (TomlInvalidTypeException e) {
+            return false;
+        }
+    }
+
+    private String getCdylibName() throws MojoExecutionException {
+        String name = null;
+        try {
+            name = cargoToml.getString("lib.name");
+        }
+        catch (TomlInvalidTypeException e) {
+            throw new MojoExecutionException(
+                "Failed to extract `lib.name` from Cargo.toml file: " +
+                e.getMessage());
+        }
+
+        // The name might be missing, but the lib section might be present.
+        if ((name == null) && hasCdylib()) {
+            name = getPackageName();
+        }
+
+        return name;
+    }
+
+    private List<String> getBinNames() throws MojoExecutionException {
+        final List<String> binNames = new java.util.ArrayList<>();
+
+        String defaultBin = null;
+        if (Files.exists(crateRoot.resolve("src").resolve("main.rs"))) {
+            // Expecting default bin, given that there's no lib.
+            defaultBin = getPackageName();
+            binNames.add(defaultBin);
+        }
+
+        TomlArray bins;
+        try {
+            bins = cargoToml.getArray("bin");
+        } catch (TomlInvalidTypeException e) {
+            throw new MojoExecutionException(
+                "Failed to extract `bin`s from Cargo.toml file: " +
+                e.getMessage());
+        }
+
+        if (bins == null) {
+            return binNames;
+        }
+        
+        for (int index = 0; index < bins.size(); ++index) {
+            final TomlTable bin = bins.getTable(index);
+            if (bin == null) {
+                throw new MojoExecutionException(
+                    "Failed to extract `bin`s from Cargo.toml file: " +
+                    "expected a `bin` table at index " + index);
+            }
+
+            String name = null;
+            try {
+                name = bin.getString("name");
+            } catch (TomlInvalidTypeException e) {
+                throw new MojoExecutionException(
+                    "Failed to extract `bin`s from Cargo.toml file: " +
+                    "expected a string at index " + index + " `name` key");
+            }
+
+            if (name == null) {
+                throw new MojoExecutionException(
+                    "Failed to extract `bin`s from Cargo.toml file: " +
+                    "missing `name` key at `bin` with index " + index);
+            }
+
+            // This `[[bin]]` entry just configures the default bin.
+            // It's already been added.
+            if (!name.equals(defaultBin)) {
+                binNames.add(name);
+            }
+        }
+
+        return binNames;
     }
 
     public List<Path> getArtifactPaths() throws MojoExecutionException {
         List<Path> paths = new ArrayList<>();
         final String profile = getProfile();
 
-        final String libName = cargoToml.getLibName();
+        final String libName = getCdylibName();
         if (libName != null) {
             final Path libPath = targetDir
                 .resolve(profile)
@@ -72,7 +222,7 @@ public class Crate {
             paths.add(libPath);
         }
 
-        final List<String> binNames = cargoToml.getBinNames();
+        final List<String> binNames = getBinNames();
         if (binNames != null) {
             for (String binName : binNames) {
                 final Path binPath = targetDir
