@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.tomlj.Toml;
 import org.tomlj.TomlArray;
@@ -301,7 +302,7 @@ public class Crate {
         }
     }
 
-    private void cargo(List<String> args) throws MojoExecutionException {
+    private void cargo(List<String> args) throws MojoExecutionException, MojoFailureException {
         String cargoPath = getCargoPath();
         final List<String> cmd = new ArrayList<>();
         cmd.add(cargoPath);
@@ -319,14 +320,11 @@ public class Crate {
             runCommand(cmd);
         } catch (IOException | InterruptedException e) {
             CargoInstalledChecker.INSTANCE.check(log, cargoPath);
-            throw new MojoExecutionException("Failed to invoke cargo", e);
+            throw new MojoFailureException("Failed to invoke cargo", e);
         }
     }
 
-    public void build() throws MojoExecutionException {
-        List<String> args = new ArrayList<>();
-        args.add("build");
-
+    private void addCargoArgs(List<String> args) {
         args.add("--target-dir");
         args.add(targetDir.toAbsolutePath().toString());
 
@@ -354,7 +352,19 @@ public class Crate {
         if (params.extraArgs != null) {
             Collections.addAll(args, params.extraArgs);
         }
+    }
 
+    public void build() throws MojoExecutionException, MojoFailureException {
+        List<String> args = new ArrayList<>();
+        args.add("build");
+        addCargoArgs(args);
+        cargo(args);
+    }
+
+    public void test() throws MojoExecutionException, MojoFailureException {
+        List<String> args = new ArrayList<>();
+        args.add("test");
+        addCargoArgs(args);
         cargo(args);
     }
 

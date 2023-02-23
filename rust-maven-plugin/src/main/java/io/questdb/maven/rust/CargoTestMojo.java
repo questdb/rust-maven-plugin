@@ -22,28 +22,22 @@
  *
  ******************************************************************************/
 
-use jni::JNIEnv;
-use jni::objects::{JClass, JString};
-use jni::sys::jstring;
+package io.questdb.maven.rust;
 
-#[no_mangle]
-pub extern "system" fn Java_io_questdb_example_rust_Main_reversedString(
-        env: JNIEnv,
-        _class: JClass,
-        input: JString) -> jstring {
-    let input: String =
-        env.get_string(input).expect("Couldn't get java string!").into();
-    let reversed: String = input.chars().rev().collect();
-    let reversed = format!("{}: {}", std::env!("REVERSED_STR_PREFIX"), reversed);
-    let output = env.new_string(reversed)
-        .expect("Couldn't create java string!");
-    output.into_raw()
-}
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_rubber_duck() {
-        assert_ne!("rubber", "duck");
+@Mojo(name = "test", defaultPhase = LifecyclePhase.TEST, threadSafe = true)
+public class CargoTestMojo extends CargoMojoBase {
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        final Crate crate = new Crate(
+            getCrateRoot(),
+            getTargetRootDir(),
+            getCommonCrateParams());
+        crate.setLog(getLog());
+        crate.test();
     }
 }
