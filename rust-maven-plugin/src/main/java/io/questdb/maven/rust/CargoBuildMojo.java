@@ -33,9 +33,13 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,6 +69,8 @@ public class CargoBuildMojo extends AbstractMojo {
      */
     @Parameter(property = "path", required = true)
     private String path;
+
+    private Path cachedPath;
 
     /**
      * Build artifacts in release mode, with optimizations.
@@ -145,22 +151,25 @@ public class CargoBuildMojo extends AbstractMojo {
         return path;
     }
 
-    private File getPath() {
-        File file = new File(path);
-        if (file.isAbsolute()) {
-            return file;
-        } else {
-            return new File(project.getBasedir(), path);
+    private Path getPath() {
+        if (cachedPath == null) {
+            cachedPath = Paths.get(path);
+            if (!cachedPath.isAbsolute()) {
+                cachedPath = project.getBasedir().toPath().resolve(path);
+            }
         }
+        return cachedPath;
     }
 
     private String getName() {
-        final String[] components = path.split("/");
-        return components[components.length - 1];
+        return getPath().getFileName().toString();
     }
 
-    private File getTargetDir() {
-        return new File(new File(new File(project.getBuild().getDirectory()), "rust-maven-plugin"), getName());
+    private Path getTargetDir() {
+        return Paths.get(
+            project.getBuild().getDirectory(),
+            "rust-maven-plugin",
+            getName());
     }
 
     private void runCommand(List<String> args)
@@ -170,7 +179,7 @@ public class CargoBuildMojo extends AbstractMojo {
         processBuilder.environment().putAll(environmentVariables);
 
         // Set the current working directory for the cargo command.
-        processBuilder.directory(getPath());
+        processBuilder.directory(getPath().toFile());
         final Process process = processBuilder.start();
         Log log = getLog();
         Executors.newSingleThreadExecutor().submit(() -> {
@@ -206,23 +215,34 @@ public class CargoBuildMojo extends AbstractMojo {
         }
     }
 
-    private File getCopyToDir() throws MojoExecutionException {
-        File copyToDir = new File(copyTo);
-        if (!copyToDir.isAbsolute()) {
-            copyToDir = new File(project.getBasedir(), copyTo);
+    private Path getCopyToDir() throws MojoExecutionException {
+        if (copyTo == null) {
+            return null;
         }
+
+        Path copyToDir = Paths.get(copyTo);
+        if (!copyToDir.isAbsolute()) {
+            copyToDir = project.getBasedir().toPath().resolve(copyTo);
+        }
+
         if (copyWithPlatformDir) {
             final String osName = System.getProperty("os.name").toLowerCase();
             final String osArch = System.getProperty("os.arch").toLowerCase();
             final String platform = (osName + "-" + osArch).replace(' ', '_');
-            copyToDir = new File(copyToDir, platform);
+            copyToDir = copyToDir.resolve(platform);
         }
-        if (!copyToDir.exists()) {
-            if (!copyToDir.mkdirs()) {
-                throw new MojoExecutionException("Failed to create directory " + copyToDir);
+
+        if (!Files.exists(copyToDir, LinkOption.NOFOLLOW_LINKS)) {
+            try {
+                Files.createDirectories(copyToDir);
+            } catch (IOException e) {
+                throw new MojoExecutionException(
+                    "Failed to create directory " + copyToDir +
+                    ": " + e.getMessage(), e);
             }
         }
-        if (!copyToDir.isDirectory()) {
+
+        if (!Files.isDirectory(copyToDir)) {
             throw new MojoExecutionException(copyToDir + " is not a directory");
         }
         return copyToDir;
@@ -230,11 +250,12 @@ public class CargoBuildMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
+        Log log = getLog();
         List<String> args = new ArrayList<>();
         args.add("build");
 
         args.add("--target-dir");
-        args.add(getTargetDir().getAbsolutePath());
+        args.add(getTargetDir().toAbsolutePath().toString());
 
         if (release) {
             args.add("--release");
@@ -260,12 +281,49 @@ public class CargoBuildMojo extends AbstractMojo {
         if (extraArgs != null) {
             Collections.addAll(args, extraArgs);
         }
+
         cargo(args);
         
-        // if/when --out-dir is stabilized then the outputRedirector function should be replaced with just the following args:
+        // Cargo nightly has support for `--out-dir`
+        // which allows us to copy the artifacts directly to the desired path.
+        // Once the feature is stabilized, copy the artifacts directly via:
         // args.add("--out-dir")
         // args.add(getCopyToDir());
-        
-        new ManualOutputRedirector(getLog(), getName(), release, getPath(), getTargetDir(), getCopyToDir()).copyArtifacts();
+
+        final Crate crate = new Crate(
+            getPath(),
+            getTargetDir(),
+            release ? "release" : "debug");
+           
+        final Path copyToDir = getCopyToDir();
+        if (copyToDir != null) {
+            final List<Path> artifactPaths = crate.getArtifactPaths();
+            copyArtifacts(copyToDir, artifactPaths);
+        }
+    }
+
+    private void copyArtifacts(Path copyToDir, List<Path> artifactPaths)
+            throws MojoExecutionException {
+        Log log = getLog();
+        log.info(
+            "Copying " + getName() +
+            "'s artifacts to " + Shlex.quote(
+                copyToDir.toAbsolutePath().toString()));
+
+        for (Path artifactPath : artifactPaths) {
+            final Path fileName = artifactPath.getFileName();
+            final Path destPath = copyToDir.resolve(fileName);
+            try {
+                Files.copy(
+                    artifactPath, 
+                    destPath,
+                    StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                throw new MojoExecutionException(
+                    "Failed to copy " + artifactPath +
+                    " to " + copyToDir + ":" + e.getMessage());
+            }
+            log.info("Copied " + Shlex.quote(fileName.toString()));
+        }
     }
 }
