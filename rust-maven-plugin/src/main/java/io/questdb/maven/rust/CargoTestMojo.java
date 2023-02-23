@@ -34,9 +34,9 @@ public class CargoTestMojo extends CargoMojoBase {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         final Crate crate = new Crate(
-            getCrateRoot(),
-            getTargetRootDir(),
-            getCommonCrateParams());
+                getCrateRoot(),
+                getTargetRootDir(),
+                getCommonCrateParams());
         crate.setLog(getLog());
         crate.test();
     }

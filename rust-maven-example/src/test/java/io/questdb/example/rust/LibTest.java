@@ -24,9 +24,9 @@
 
 package io.questdb.example.rust;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class LibTest {
 

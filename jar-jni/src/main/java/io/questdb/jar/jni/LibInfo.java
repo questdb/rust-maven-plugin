@@ -1,10 +1,10 @@
 package io.questdb.jar.jni;
 
 public class LibInfo {
-    private String platform;
-    private String name;
-    private String prefix;
-    private String suffix;
+    private final String platform;
+    private final String name;
+    private final String prefix;
+    private final String suffix;
 
     public LibInfo(String name) {
         this(

@@ -24,6 +24,14 @@
 
 package io.questdb.maven.rust;
 
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
+import org.tomlj.Toml;
+import org.tomlj.TomlArray;
+import org.tomlj.TomlInvalidTypeException;
+import org.tomlj.TomlTable;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -37,36 +45,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
-import org.tomlj.Toml;
-import org.tomlj.TomlArray;
-import org.tomlj.TomlInvalidTypeException;
-import org.tomlj.TomlTable;
-
-/** Controls running tasks on a Rust crate. */
+/**
+ * Controls running tasks on a Rust crate.
+ */
 public class Crate {
-    public static class Params {
-        public HashMap<String, String> environmentVariables;
-        public String cargoPath;
-        public boolean release;
-        public String[] features;
-        public boolean allFeatures;
-        public boolean noDefaultFeatures;
-        public boolean tests;
-        public String[] extraArgs;
-        public Path copyToDir;
-        public boolean copyWithPlatformDir;
-    }
-
-    private Log log;
     private final Path crateRoot;
     private final Path targetDir;
     private final Params params;
     private final TomlTable cargoToml;
     private final String packageName;
-
+    private Log log;
     public Crate(
             Path crateRoot,
             Path targetRootDir,
@@ -79,26 +67,113 @@ public class Crate {
         final Path tomlPath = crateRoot.resolve("Cargo.toml");
         if (!Files.exists(tomlPath, LinkOption.NOFOLLOW_LINKS)) {
             throw new MojoExecutionException(
-                "Cargo.toml file expected under: " + crateRoot);
+                    "Cargo.toml file expected under: " + crateRoot);
         }
         try {
             this.cargoToml = Toml.parse(tomlPath);
         } catch (IOException e) {
             throw new MojoExecutionException(
-                "Failed to parse Cargo.toml file: " + e.getMessage());
+                    "Failed to parse Cargo.toml file: " + e.getMessage());
         }
 
         try {
             packageName = cargoToml.getString("package.name");
             if (packageName == null) {
                 throw new MojoExecutionException(
-                    "Missing required `package.name` from Cargo.toml file");
+                        "Missing required `package.name` from Cargo.toml file");
             }
         } catch (TomlInvalidTypeException e) {
             throw new MojoExecutionException(
-                "Failed to extract `package.name` from Cargo.toml file: " +
-                e.getMessage());
+                    "Failed to extract `package.name` from Cargo.toml file: " +
+                            e.getMessage());
         }
+    }
+
+    public static String pinLibName(String name) {
+        final String osName = System.getProperty("os.name").toLowerCase();
+        final String libPrefix = osName.startsWith("windows") ? "" : "lib";
+        final String libSuffix = osName.startsWith("windows")
+                ? ".dll" : osName.contains("mac")
+                ? ".dylib" : ".so";
+        return libPrefix + name.replace("-", "_") + libSuffix;
+    }
+
+    public static String pinBinName(String name) {
+        final String osName = System.getProperty("os.name").toLowerCase();
+        final String binSuffix = osName.startsWith("windows") ? ".exe" : "";
+        return name + binSuffix;
+    }
+
+    public static Log nullLog() {
+        return new Log() {
+            @Override
+            public void debug(CharSequence content) {
+            }
+
+            @Override
+            public void debug(CharSequence content, Throwable error) {
+            }
+
+            @Override
+            public void debug(Throwable error) {
+            }
+
+            @Override
+            public void error(CharSequence content) {
+            }
+
+            @Override
+            public void error(CharSequence content, Throwable error) {
+            }
+
+            @Override
+            public void error(Throwable error) {
+            }
+
+            @Override
+            public void info(CharSequence content) {
+            }
+
+            @Override
+            public void info(CharSequence content, Throwable error) {
+            }
+
+            @Override
+            public void info(Throwable error) {
+            }
+
+            @Override
+            public boolean isDebugEnabled() {
+                return false;
+            }
+
+            @Override
+            public boolean isErrorEnabled() {
+                return false;
+            }
+
+            @Override
+            public boolean isInfoEnabled() {
+                return false;
+            }
+
+            @Override
+            public boolean isWarnEnabled() {
+                return false;
+            }
+
+            @Override
+            public void warn(CharSequence content) {
+            }
+
+            @Override
+            public void warn(CharSequence content, Throwable error) {
+            }
+
+            @Override
+            public void warn(Throwable error) {
+            }
+        };
     }
 
     public void setLog(Log log) {
@@ -128,8 +203,7 @@ public class Crate {
             }
 
             return false;
-        }
-        catch (TomlInvalidTypeException e) {
+        } catch (TomlInvalidTypeException e) {
             return false;
         }
     }
@@ -138,11 +212,10 @@ public class Crate {
         String name = null;
         try {
             name = cargoToml.getString("lib.name");
-        }
-        catch (TomlInvalidTypeException e) {
+        } catch (TomlInvalidTypeException e) {
             throw new MojoExecutionException(
-                "Failed to extract `lib.name` from Cargo.toml file: " +
-                e.getMessage());
+                    "Failed to extract `lib.name` from Cargo.toml file: " +
+                            e.getMessage());
         }
 
         // The name might be missing, but the lib section might be present.
@@ -168,20 +241,20 @@ public class Crate {
             bins = cargoToml.getArray("bin");
         } catch (TomlInvalidTypeException e) {
             throw new MojoExecutionException(
-                "Failed to extract `bin`s from Cargo.toml file: " +
-                e.getMessage());
+                    "Failed to extract `bin`s from Cargo.toml file: " +
+                            e.getMessage());
         }
 
         if (bins == null) {
             return binNames;
         }
-        
+
         for (int index = 0; index < bins.size(); ++index) {
             final TomlTable bin = bins.getTable(index);
             if (bin == null) {
                 throw new MojoExecutionException(
-                    "Failed to extract `bin`s from Cargo.toml file: " +
-                    "expected a `bin` table at index " + index);
+                        "Failed to extract `bin`s from Cargo.toml file: " +
+                                "expected a `bin` table at index " + index);
             }
 
             String name = null;
@@ -189,14 +262,14 @@ public class Crate {
                 name = bin.getString("name");
             } catch (TomlInvalidTypeException e) {
                 throw new MojoExecutionException(
-                    "Failed to extract `bin`s from Cargo.toml file: " +
-                    "expected a string at index " + index + " `name` key");
+                        "Failed to extract `bin`s from Cargo.toml file: " +
+                                "expected a string at index " + index + " `name` key");
             }
 
             if (name == null) {
                 throw new MojoExecutionException(
-                    "Failed to extract `bin`s from Cargo.toml file: " +
-                    "missing `name` key at `bin` with index " + index);
+                        "Failed to extract `bin`s from Cargo.toml file: " +
+                                "missing `name` key at `bin` with index " + index);
             }
 
             String path = null;
@@ -204,8 +277,8 @@ public class Crate {
                 path = bin.getString("path");
             } catch (TomlInvalidTypeException e) {
                 throw new MojoExecutionException(
-                    "Failed to extract `bin`s from Cargo.toml file: " +
-                    "expected a string at index " + index + " `path` key");
+                        "Failed to extract `bin`s from Cargo.toml file: " +
+                                "expected a string at index " + index + " `path` key");
             }
 
             // Handle special case where the default bin is renamed.
@@ -232,8 +305,8 @@ public class Crate {
         final String libName = getCdylibName();
         if (libName != null) {
             final Path libPath = targetDir
-                .resolve(profile)
-                .resolve(pinLibName(libName));
+                    .resolve(profile)
+                    .resolve(pinLibName(libName));
             paths.add(libPath);
         }
 
@@ -241,28 +314,13 @@ public class Crate {
         if (binNames != null) {
             for (String binName : binNames) {
                 final Path binPath = targetDir
-                    .resolve(profile)
-                    .resolve(pinBinName(binName));
+                        .resolve(profile)
+                        .resolve(pinBinName(binName));
                 paths.add(binPath);
             }
         }
 
         return paths;
-    }
-
-    public static String pinLibName(String name) {
-        final String osName = System.getProperty("os.name").toLowerCase();
-        final String libPrefix = osName.startsWith("windows") ? "" : "lib";
-        final String libSuffix = osName.startsWith("windows")
-                ? ".dll" : osName.contains("mac")
-                ? ".dylib" : ".so";
-        return libPrefix + name.replace("-", "_") + libSuffix;
-    }
-
-    public static String pinBinName(String name) {
-        final String osName = System.getProperty("os.name").toLowerCase();
-        final String binSuffix = osName.startsWith("windows") ? ".exe" : "";
-        return name + binSuffix;
     }
 
     private String getCargoPath() {
@@ -298,7 +356,7 @@ public class Crate {
         final int exitCode = process.waitFor();
         if (exitCode != 0) {
             throw new MojoExecutionException(
-                "Cargo command failed with exit code " + exitCode);
+                    "Cargo command failed with exit code " + exitCode);
         }
     }
 
@@ -312,7 +370,7 @@ public class Crate {
             log.info("Environment variables:");
             for (String key : params.environmentVariables.keySet()) {
                 log.info("  " + key + "=" + Shlex.quote(
-                    params.environmentVariables.get(key)));
+                        params.environmentVariables.get(key)));
             }
         }
         log.info("Running: " + Shlex.quote(cmd));
@@ -388,8 +446,8 @@ public class Crate {
                 Files.createDirectories(copyToDir);
             } catch (IOException e) {
                 throw new MojoExecutionException(
-                    "Failed to create directory " + copyToDir +
-                    ": " + e.getMessage(), e);
+                        "Failed to create directory " + copyToDir +
+                                ": " + e.getMessage(), e);
             }
         }
 
@@ -411,96 +469,37 @@ public class Crate {
         }
         final List<Path> artifactPaths = getArtifactPaths();
         log.info(
-            "Copying " + getDirName() +
-            "'s artifacts to " + Shlex.quote(
-                copyToDir.toAbsolutePath().toString()));
+                "Copying " + getDirName() +
+                        "'s artifacts to " + Shlex.quote(
+                        copyToDir.toAbsolutePath().toString()));
 
         for (Path artifactPath : artifactPaths) {
             final Path fileName = artifactPath.getFileName();
             final Path destPath = copyToDir.resolve(fileName);
             try {
                 Files.copy(
-                    artifactPath, 
-                    destPath,
-                    StandardCopyOption.REPLACE_EXISTING);
+                        artifactPath,
+                        destPath,
+                        StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
                 throw new MojoExecutionException(
-                    "Failed to copy " + artifactPath +
-                    " to " + copyToDir + ":" + e.getMessage());
+                        "Failed to copy " + artifactPath +
+                                " to " + copyToDir + ":" + e.getMessage());
             }
             log.info("Copied " + Shlex.quote(fileName.toString()));
         }
     }
 
-    public static Log nullLog() {
-        return new Log() {
-            @Override
-            public void debug(CharSequence content) {
-            }
-
-            @Override
-            public void debug(CharSequence content, Throwable error) {
-            }
-
-            @Override
-            public void debug(Throwable error) {
-            }
-
-            @Override
-            public void error(CharSequence content) {
-            }
-
-            @Override
-            public void error(CharSequence content, Throwable error) {
-            }
-
-            @Override
-            public void error(Throwable error) {
-            }
-
-            @Override
-            public void info(CharSequence content) {
-            }
-
-            @Override
-            public void info(CharSequence content, Throwable error) {
-            }
-
-            @Override
-            public void info(Throwable error) {
-            }
-
-            @Override
-            public boolean isDebugEnabled() {
-                return false;
-            }
-
-            @Override
-            public boolean isErrorEnabled() {
-                return false;
-            }
-
-            @Override
-            public boolean isInfoEnabled() {
-                return false;
-            }
-
-            @Override
-            public boolean isWarnEnabled() {
-                return false;
-            }
-
-            @Override
-            public void warn(CharSequence content) {
-            }
-
-            @Override
-            public void warn(CharSequence content, Throwable error) {
-            }
-
-            @Override
-            public void warn(Throwable error) {
-            }
-        };
+    public static class Params {
+        public HashMap<String, String> environmentVariables;
+        public String cargoPath;
+        public boolean release;
+        public String[] features;
+        public boolean allFeatures;
+        public boolean noDefaultFeatures;
+        public boolean tests;
+        public String[] extraArgs;
+        public Path copyToDir;
+        public boolean copyWithPlatformDir;
     }
 }

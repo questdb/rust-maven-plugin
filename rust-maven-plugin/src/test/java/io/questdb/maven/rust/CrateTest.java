@@ -1,13 +1,5 @@
 package io.questdb.maven.rust;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.After;
 import org.junit.Before;
@@ -15,8 +7,20 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+import static org.junit.Assert.*;
+
 
 public class CrateTest {
+
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
+    private Path targetRootDir;
 
     public static boolean isWindows() {
         return System.getProperty("os.name").toLowerCase().contains("win");
@@ -25,85 +29,19 @@ public class CrateTest {
     public static boolean isMac() {
         return System.getProperty("os.name").toLowerCase().contains("mac");
     }
-    
-    @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
 
-    private Path targetRootDir;
-   
     @Before
     public void before() throws IOException {
         tmpDir = new TemporaryFolder();
         tmpDir.create();
         targetRootDir = tmpDir.newFolder(
-            "target",
-            "rust-maven-plugin").toPath();
+                "target",
+                "rust-maven-plugin").toPath();
     }
 
     @After
     public void after() {
         tmpDir.delete();
-    }
-
-    class MockCrate {
-        private final String name;
-        private final String profile;
-        private final Path crateRoot;
-
-        public MockCrate(String name, String profile) throws IOException {
-            this.name = name;
-            this.profile = profile;
-            this.crateRoot = tmpDir.newFolder(name).toPath();
-        }
-
-        public void writeCargoToml(String contents) throws IOException {
-            Path cargoToml = crateRoot.resolve("Cargo.toml");
-            try (PrintWriter w = new PrintWriter(cargoToml.toFile(), "UTF-8")) {
-                w.write(contents);
-            }
-        }
-
-        public Path touchBin(String name) throws IOException {
-            final Path mockBinPath = targetRootDir
-                .resolve(this.name)
-                .resolve(profile)
-                .resolve(name + (isWindows() ? ".exe" : ""));
-            if (!Files.exists(mockBinPath.getParent())) {
-                Files.createDirectories(mockBinPath.getParent());
-            }
-            Files.createFile(mockBinPath);
-            return mockBinPath;
-        }
-
-        public Path touchSrc(String... pathComponents) throws IOException {
-            Path srcPath = crateRoot.resolve("src");
-            for (String pathComponent : pathComponents) {
-                srcPath = srcPath.resolve(pathComponent);
-            }
-            if (!Files.exists(srcPath.getParent())) {
-                Files.createDirectories(srcPath.getParent());
-            }
-            Files.createFile(srcPath);
-            return srcPath;
-        }
-
-        public Path touchLib(String name) throws IOException {
-            final String prefix = isWindows() ? "" : "lib";
-            final String suffix =
-                isWindows() ? ".dll" :
-                isMac() ? ".dylib"
-                : ".so";
-            final String libName = prefix + name.replace('-', '_') + suffix;
-            final Path libPath = targetRootDir
-                .resolve(this.name)
-                .resolve(profile)
-                .resolve(libName);
-            if (!Files.exists(libPath.getParent())) {
-                Files.createDirectories(libPath.getParent());
-            }
-            Files.createFile(libPath);
-            return libPath;
-        }
     }
 
     private void doTestDefaultBin(
@@ -112,13 +50,13 @@ public class CrateTest {
             boolean copyWithPlatformDir) throws Exception {
         // Setting up mock Rust project directory.
         final MockCrate mock = new MockCrate(
-            "test-bin-1",
-            release ? "release" : "debug");
+                "test-bin-1",
+                release ? "release" : "debug");
         mock.writeCargoToml(
-            "[package]\n" +
-            "name = \"test-bin\"\n" +
-            "version = \"0.1.0\"\n" +
-            "edition = \"2021\"\n");
+                "[package]\n" +
+                        "name = \"test-bin\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n");
         mock.touchSrc("main.rs");
         final Path mockBinPath = mock.touchBin("test-bin");
         assertTrue(Files.exists(mockBinPath));
@@ -132,9 +70,9 @@ public class CrateTest {
         params.copyWithPlatformDir = copyWithPlatformDir;
 
         final Crate crate = new Crate(
-            mock.crateRoot,
-            targetRootDir,
-            params);
+                mock.crateRoot,
+                targetRootDir,
+                params);
 
         // Checking the expected paths it generates.
         final List<Path> artifacts = crate.getArtifactPaths();
@@ -185,7 +123,7 @@ public class CrateTest {
     public void testDefaultBinDebugCopyToPlatformDir() throws Exception {
         doTestDefaultBin(false, true, true);
     }
-    
+
     @Test
     public void testDefaultBinReleaseCopyToPlatformDir() throws Exception {
         doTestDefaultBin(true, true, true);
@@ -194,16 +132,16 @@ public class CrateTest {
     private void doTestCdylib(boolean release, boolean copyTo, boolean copyWithPlatformDir) throws Exception {
         // Setting up mock Rust project directory.
         final MockCrate mock = new MockCrate(
-            "test-lib-1",
-            release ? "release" : "debug");
+                "test-lib-1",
+                release ? "release" : "debug");
         mock.writeCargoToml(
-            "[package]\n" +
-            "name = \"test-lib\"\n" +
-            "version = \"0.1.0\"\n" +
-            "edition = \"2021\"\n" +
-            "\n" +
-            "[lib]\n" +
-            "crate-type = [\"cdylib\"]\n");
+                "[package]\n" +
+                        "name = \"test-lib\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n" +
+                        "\n" +
+                        "[lib]\n" +
+                        "crate-type = [\"cdylib\"]\n");
         mock.touchSrc("lib.rs");
         final Path cdylibPath = mock.touchLib("test-lib");
 
@@ -216,9 +154,9 @@ public class CrateTest {
         params.copyWithPlatformDir = copyWithPlatformDir;
 
         final Crate crate = new Crate(
-            mock.crateRoot,
-            targetRootDir,
-            params);
+                mock.crateRoot,
+                targetRootDir,
+                params);
 
         // Checking the expected paths it generates.
         final List<Path> artifacts = crate.getArtifactPaths();
@@ -260,7 +198,7 @@ public class CrateTest {
     public void testCdylibDebugCopyToPlatformDir() throws Exception {
         doTestCdylib(false, true, true);
     }
-    
+
     @Test
     public void testCdylibReleaseCopyToPlatformDir() throws Exception {
         doTestCdylib(true, true, true);
@@ -270,17 +208,17 @@ public class CrateTest {
     public void testCustomCdylibName() throws Exception {
         // Setting up mock Rust project directory.
         final MockCrate mock = new MockCrate(
-            "test-lib-1",
-            "debug");
+                "test-lib-1",
+                "debug");
         mock.writeCargoToml(
-            "[package]\n" +
-            "name = \"test-lib\"\n" +
-            "version = \"0.1.0\"\n" +
-            "edition = \"2021\"\n" +
-            "\n" +
-            "[lib]\n" +
-            "name = \"mylib\"\n" +
-            "crate-type = [\"cdylib\"]\n");
+                "[package]\n" +
+                        "name = \"test-lib\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n" +
+                        "\n" +
+                        "[lib]\n" +
+                        "name = \"mylib\"\n" +
+                        "crate-type = [\"cdylib\"]\n");
         mock.touchSrc("lib.rs");
         final Path cdylibPath = mock.touchLib("mylib");
 
@@ -291,9 +229,9 @@ public class CrateTest {
         params.copyWithPlatformDir = true;
 
         final Crate crate = new Crate(
-            mock.crateRoot,
-            targetRootDir,
-            params);
+                mock.crateRoot,
+                targetRootDir,
+                params);
 
         // Checking the expected paths it generates.
         final List<Path> artifacts = crate.getArtifactPaths();
@@ -303,8 +241,8 @@ public class CrateTest {
         crate.copyArtifacts();
 
         Path expectedLibPath = params.copyToDir
-            .resolve(getPlatformDir())
-            .resolve(cdylibPath.getFileName());
+                .resolve(getPlatformDir())
+                .resolve(cdylibPath.getFileName());
 
         assertTrue(Files.exists(expectedLibPath));
     }
@@ -313,16 +251,16 @@ public class CrateTest {
     public void testDefaultBinAndCdylib() throws Exception {
         // Setting up mock Rust project directory.
         final MockCrate mock = new MockCrate(
-            "test42",
-            "debug");
+                "test42",
+                "debug");
         mock.writeCargoToml(
-            "[package]\n" +
-            "name = \"test42\"\n" +
-            "version = \"0.1.0\"\n" +
-            "edition = \"2021\"\n" +
-            "\n" +
-            "[lib]\n" +
-            "crate-type = [\"cdylib\"]\n");
+                "[package]\n" +
+                        "name = \"test42\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n" +
+                        "\n" +
+                        "[lib]\n" +
+                        "crate-type = [\"cdylib\"]\n");
         mock.touchSrc("lib.rs");
         mock.touchSrc("main.rs");
         final Path cdylibPath = mock.touchLib("test42");
@@ -334,9 +272,9 @@ public class CrateTest {
         params.copyToDir = tmpDir.newFolder("dest_dir").toPath();
 
         final Crate crate = new Crate(
-            mock.crateRoot,
-            targetRootDir,
-            params);
+                mock.crateRoot,
+                targetRootDir,
+                params);
 
         // Checking the expected paths it generates.
         final List<Path> artifacts = crate.getArtifactPaths();
@@ -347,9 +285,9 @@ public class CrateTest {
         crate.copyArtifacts();
 
         Path expectedLibPath = params.copyToDir
-            .resolve(cdylibPath.getFileName());
+                .resolve(cdylibPath.getFileName());
         Path expectedBinPath = params.copyToDir
-            .resolve(binPath.getFileName());
+                .resolve(binPath.getFileName());
 
         assertTrue(Files.exists(expectedLibPath));
         assertTrue(Files.exists(expectedBinPath));
@@ -359,17 +297,17 @@ public class CrateTest {
     public void testRenamedDefaultBin() throws Exception {
         // Setting up mock Rust project directory.
         final MockCrate mock = new MockCrate(
-            "test-custom-name-bin",
-            "debug");
+                "test-custom-name-bin",
+                "debug");
         mock.writeCargoToml(
-            "[package]\n" +
-            "name = \"test-custom-name-bin\"\n" +
-            "version = \"0.1.0\"\n" +
-            "edition = \"2021\"\n" +
-            "\n" +
-            "[[bin]]\n" +
-            "name = \"test43\"\n" +
-            "path = \"src/main.rs\"\n");
+                "[package]\n" +
+                        "name = \"test-custom-name-bin\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n" +
+                        "\n" +
+                        "[[bin]]\n" +
+                        "name = \"test43\"\n" +
+                        "path = \"src/main.rs\"\n");
         mock.touchSrc("main.rs");
         final Path binPath = mock.touchBin("test43");
 
@@ -379,9 +317,9 @@ public class CrateTest {
         params.copyToDir = tmpDir.newFolder("dest_dir").toPath();
 
         final Crate crate = new Crate(
-            mock.crateRoot,
-            targetRootDir,
-            params);
+                mock.crateRoot,
+                targetRootDir,
+                params);
 
         // Checking the expected paths it generates.
         final List<Path> artifacts = crate.getArtifactPaths();
@@ -391,7 +329,7 @@ public class CrateTest {
         crate.copyArtifacts();
 
         Path expectedBinPath = params.copyToDir
-            .resolve(binPath.getFileName());
+                .resolve(binPath.getFileName());
 
         assertTrue(Files.exists(expectedBinPath));
     }
@@ -400,17 +338,17 @@ public class CrateTest {
     public void testConfiguredDefaultBin() throws Exception {
         // Setting up mock Rust project directory.
         final MockCrate mock = new MockCrate(
-            "test-configured-bin",
-            "debug");
+                "test-configured-bin",
+                "debug");
         mock.writeCargoToml(
-            "[package]\n" +
-            "name = \"test-configured-bin\"\n" +
-            "version = \"0.1.0\"\n" +
-            "edition = \"2021\"\n" +
-            "\n" +
-            "[[bin]]\n" +
-            "name = \"test-configured-bin\"\n" +
-            "path = \"src/main.rs\"\n");
+                "[package]\n" +
+                        "name = \"test-configured-bin\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n" +
+                        "\n" +
+                        "[[bin]]\n" +
+                        "name = \"test-configured-bin\"\n" +
+                        "path = \"src/main.rs\"\n");
         mock.touchSrc("main.rs");
         final Path binPath = mock.touchBin("test-configured-bin");
 
@@ -420,9 +358,9 @@ public class CrateTest {
         params.copyToDir = tmpDir.newFolder("dest_dir").toPath();
 
         final Crate crate = new Crate(
-            mock.crateRoot,
-            targetRootDir,
-            params);
+                mock.crateRoot,
+                targetRootDir,
+                params);
 
         // Checking the expected paths it generates.
         final List<Path> artifacts = crate.getArtifactPaths();
@@ -432,7 +370,7 @@ public class CrateTest {
         crate.copyArtifacts();
 
         Path expectedBinPath = params.copyToDir
-            .resolve(binPath.getFileName());
+                .resolve(binPath.getFileName());
 
         assertTrue(Files.exists(expectedBinPath));
     }
@@ -442,17 +380,17 @@ public class CrateTest {
         // Setting up mock Rust project directory.
         final MockCrate mock = new MockCrate("mixed", "release");
         mock.writeCargoToml(
-            "[package]\n" +
-            "name = \"mixed\"\n" +
-            "version = \"0.1.0\"\n" +
-            "edition = \"2021\"\n" +
-            "\n" +
-            "[lib]\n" +
-            "crate-type = [\"cdylib\"]\n" +
-            "\n" +
-            "[[bin]]\n" +
-            "name = \"extra-bin\"\n" + 
-            "path = \"src/extra-bin/main.rs\"\n");
+                "[package]\n" +
+                        "name = \"mixed\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n" +
+                        "\n" +
+                        "[lib]\n" +
+                        "crate-type = [\"cdylib\"]\n" +
+                        "\n" +
+                        "[[bin]]\n" +
+                        "name = \"extra-bin\"\n" +
+                        "path = \"src/extra-bin/main.rs\"\n");
         mock.touchSrc("lib.rs");
         mock.touchSrc("main.rs");
         mock.touchSrc("extra-bin", "main.rs");
@@ -467,9 +405,9 @@ public class CrateTest {
         params.copyToDir = tmpDir.newFolder("dest_dir").toPath();
 
         final Crate crate = new Crate(
-            mock.crateRoot,
-            targetRootDir,
-            params);
+                mock.crateRoot,
+                targetRootDir,
+                params);
 
         // Checking the expected paths it generates.
         final List<Path> artifacts = crate.getArtifactPaths();
@@ -481,11 +419,11 @@ public class CrateTest {
         crate.copyArtifacts();
 
         Path expectedLibPath = params.copyToDir
-            .resolve(cdylibPath.getFileName());
+                .resolve(cdylibPath.getFileName());
         Path expectedBinPath = params.copyToDir
-            .resolve(binPath.getFileName());
+                .resolve(binPath.getFileName());
         Path expectedExtraBinPath = params.copyToDir
-            .resolve(extraBinPath.getFileName());
+                .resolve(extraBinPath.getFileName());
 
         assertTrue(Files.exists(expectedLibPath));
         assertTrue(Files.exists(expectedBinPath));
@@ -497,10 +435,10 @@ public class CrateTest {
         // Setting up mock Rust project directory.
         final MockCrate mock = new MockCrate("bad-toml", "release");
         mock.writeCargoToml(
-            //  "[package]\n" +   MISSING!
-            "name = \"bad-toml\"\n" +
-            "version = \"0.1.0\"\n" +
-            "edition = \"2021\"\n");
+                //  "[package]\n" +   MISSING!
+                "name = \"bad-toml\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n");
         mock.touchSrc("main.rs");
         mock.touchBin("bad-toml");
 
@@ -510,7 +448,68 @@ public class CrateTest {
         params.copyToDir = tmpDir.newFolder("dest_dir").toPath();
 
         assertThrows(
-            MojoExecutionException.class,
-            () -> new Crate(mock.crateRoot, targetRootDir, params));
+                MojoExecutionException.class,
+                () -> new Crate(mock.crateRoot, targetRootDir, params));
+    }
+
+    class MockCrate {
+        private final String name;
+        private final String profile;
+        private final Path crateRoot;
+
+        public MockCrate(String name, String profile) throws IOException {
+            this.name = name;
+            this.profile = profile;
+            this.crateRoot = tmpDir.newFolder(name).toPath();
+        }
+
+        public void writeCargoToml(String contents) throws IOException {
+            Path cargoToml = crateRoot.resolve("Cargo.toml");
+            try (PrintWriter w = new PrintWriter(cargoToml.toFile(), "UTF-8")) {
+                w.write(contents);
+            }
+        }
+
+        public Path touchBin(String name) throws IOException {
+            final Path mockBinPath = targetRootDir
+                    .resolve(this.name)
+                    .resolve(profile)
+                    .resolve(name + (isWindows() ? ".exe" : ""));
+            if (!Files.exists(mockBinPath.getParent())) {
+                Files.createDirectories(mockBinPath.getParent());
+            }
+            Files.createFile(mockBinPath);
+            return mockBinPath;
+        }
+
+        public Path touchSrc(String... pathComponents) throws IOException {
+            Path srcPath = crateRoot.resolve("src");
+            for (String pathComponent : pathComponents) {
+                srcPath = srcPath.resolve(pathComponent);
+            }
+            if (!Files.exists(srcPath.getParent())) {
+                Files.createDirectories(srcPath.getParent());
+            }
+            Files.createFile(srcPath);
+            return srcPath;
+        }
+
+        public Path touchLib(String name) throws IOException {
+            final String prefix = isWindows() ? "" : "lib";
+            final String suffix =
+                    isWindows() ? ".dll" :
+                            isMac() ? ".dylib"
+                                    : ".so";
+            final String libName = prefix + name.replace('-', '_') + suffix;
+            final Path libPath = targetRootDir
+                    .resolve(this.name)
+                    .resolve(profile)
+                    .resolve(libName);
+            if (!Files.exists(libPath.getParent())) {
+                Files.createDirectories(libPath.getParent());
+            }
+            Files.createFile(libPath);
+            return libPath;
+        }
     }
 }

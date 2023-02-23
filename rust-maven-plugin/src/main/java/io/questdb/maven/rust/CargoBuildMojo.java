@@ -41,7 +41,7 @@ public class CargoBuildMojo extends CargoMojoBase {
     /**
      * Location to copy the built Rust binaries to.
      * If unset, the binaries are not copied and remain in the target directory.
-     *
+     * <p>
      * See also `copyWithPlatformDir`.
      */
     @Parameter(property = "copyTo")
@@ -50,7 +50,7 @@ public class CargoBuildMojo extends CargoMojoBase {
     /**
      * Further nest copy into a subdirectory named through the following expression:
      * (System.getProperty("os.name") + "_" + System.getProperty("os.arch")).toLowerCase();
-     *
+     * <p>
      * See also `copyTo`.
      */
     @Parameter(property = "copyWithPlatformDir")
@@ -59,9 +59,9 @@ public class CargoBuildMojo extends CargoMojoBase {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         final Crate crate = new Crate(
-            getCrateRoot(),
-            getTargetRootDir(),
-            extractCrateParams());
+                getCrateRoot(),
+                getTargetRootDir(),
+                extractCrateParams());
         crate.setLog(getLog());
         crate.build();
         crate.copyArtifacts();
@@ -73,7 +73,7 @@ public class CargoBuildMojo extends CargoMojoBase {
             Path copyToDir = Paths.get(copyTo);
             if (!copyToDir.isAbsolute()) {
                 copyToDir = project.getBasedir().toPath()
-                    .resolve(copyToDir);
+                        .resolve(copyToDir);
             }
             params.copyToDir = copyToDir;
         }

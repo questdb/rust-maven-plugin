@@ -17,7 +17,9 @@ public enum OsInfo {
                 ? ".dylib" : ".so";
     }
 
-    public String getPlatform() { return platform; }
+    public String getPlatform() {
+        return platform;
+    }
 
     public String getLibPrefix() {
         return libPrefix;

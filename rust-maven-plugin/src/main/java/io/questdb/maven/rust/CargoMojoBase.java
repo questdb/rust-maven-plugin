@@ -100,8 +100,8 @@ public abstract class CargoMojoBase extends AbstractMojo {
 
     protected Path getTargetRootDir() {
         return Paths.get(
-            project.getBuild().getDirectory(),
-            "rust-maven-plugin");
+                project.getBuild().getDirectory(),
+                "rust-maven-plugin");
     }
 
     protected Crate.Params getCommonCrateParams() {
