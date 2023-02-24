@@ -25,6 +25,8 @@
 package io.questdb.maven.rust;
 
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
@@ -36,6 +38,13 @@ import java.util.HashMap;
 public abstract class CargoMojoBase extends AbstractMojo {
     @Parameter(property = "project", readonly = true)
     protected MavenProject project;
+
+    /**
+     * The plugin is enabled by default. You can set <enabled>false</enabled>
+     * to temporarily disable the plugin or a specific execution.
+     */
+    @Parameter(property = "enabled", defaultValue = "true")
+    private boolean enabled;
 
     @Parameter(property = "environmentVariables")
     private HashMap<String, String> environmentVariables;
@@ -115,4 +124,16 @@ public abstract class CargoMojoBase extends AbstractMojo {
         params.extraArgs = extraArgs;
         return params;
     }
+
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        if (!enabled) {
+            getLog().info("Skipping run of `rust-maven-plugin`.");
+            return;
+        }
+
+        run();
+    }
+
+    public abstract void run() throws MojoExecutionException, MojoFailureException;
 }

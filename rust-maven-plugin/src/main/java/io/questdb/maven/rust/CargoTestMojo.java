@@ -32,7 +32,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 @Mojo(name = "test", defaultPhase = LifecyclePhase.TEST, threadSafe = true)
 public class CargoTestMojo extends CargoMojoBase {
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void run() throws MojoExecutionException, MojoFailureException {
         final Crate crate = new Crate(
                 getCrateRoot(),
                 getTargetRootDir(),

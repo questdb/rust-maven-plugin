@@ -57,7 +57,7 @@ public class CargoBuildMojo extends CargoMojoBase {
     private boolean copyWithPlatformDir;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void run() throws MojoExecutionException, MojoFailureException {
         final Crate crate = new Crate(
                 getCrateRoot(),
                 getTargetRootDir(),
