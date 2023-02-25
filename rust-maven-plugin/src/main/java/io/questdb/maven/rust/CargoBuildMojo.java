@@ -48,8 +48,9 @@ public class CargoBuildMojo extends CargoMojoBase {
     private String copyTo;
 
     /**
-     * Further nest copy into a subdirectory named through the following expression:
-     * (System.getProperty("os.name") + "_" + System.getProperty("os.arch")).toLowerCase();
+     * Further nest copy into a child directory named through the target's platform.
+     * The computed name matches that of the
+     * `io.questdb.jar.jni.OsInfo.INSTANCE.getPlatform()` method.
      * <p>
      * See also `copyTo`.
      */

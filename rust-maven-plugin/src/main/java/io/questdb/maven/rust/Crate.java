@@ -24,6 +24,7 @@
 
 package io.questdb.maven.rust;
 
+import io.questdb.jar.jni.OsInfo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -55,6 +56,7 @@ public class Crate {
     private final TomlTable cargoToml;
     private final String packageName;
     private Log log;
+
     public Crate(
             Path crateRoot,
             Path targetRootDir,
@@ -90,18 +92,13 @@ public class Crate {
     }
 
     public static String pinLibName(String name) {
-        final String osName = System.getProperty("os.name").toLowerCase();
-        final String libPrefix = osName.startsWith("windows") ? "" : "lib";
-        final String libSuffix = osName.startsWith("windows")
-                ? ".dll" : osName.contains("mac")
-                ? ".dylib" : ".so";
-        return libPrefix + name.replace("-", "_") + libSuffix;
+        return OsInfo.INSTANCE.getLibPrefix() +
+                name.replace('-', '_') +
+                OsInfo.INSTANCE.getLibSuffix();
     }
 
     public static String pinBinName(String name) {
-        final String osName = System.getProperty("os.name").toLowerCase();
-        final String binSuffix = osName.startsWith("windows") ? ".exe" : "";
-        return name + binSuffix;
+        return name + OsInfo.INSTANCE.getExeSuffix();
     }
 
     public static Log nullLog() {
@@ -310,14 +307,11 @@ public class Crate {
             paths.add(libPath);
         }
 
-        final List<String> binNames = getBinNames();
-        if (binNames != null) {
-            for (String binName : binNames) {
-                final Path binPath = targetDir
-                        .resolve(profile)
-                        .resolve(pinBinName(binName));
-                paths.add(binPath);
-            }
+        for (String binName : getBinNames()) {
+            final Path binPath = targetDir
+                    .resolve(profile)
+                    .resolve(pinBinName(binName));
+            paths.add(binPath);
         }
 
         return paths;
@@ -435,10 +429,7 @@ public class Crate {
         }
 
         if (params.copyWithPlatformDir) {
-            final String osName = System.getProperty("os.name").toLowerCase();
-            final String osArch = System.getProperty("os.arch").toLowerCase();
-            final String platform = (osName + "-" + osArch).replace(' ', '_');
-            copyToDir = copyToDir.resolve(platform);
+            copyToDir = copyToDir.resolve(OsInfo.INSTANCE.getPlatform());
         }
 
         if (!Files.exists(copyToDir, LinkOption.NOFOLLOW_LINKS)) {

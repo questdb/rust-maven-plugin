@@ -107,10 +107,9 @@
                             <copyTo>${project.build.directory}/classes/io/questdb/example/rust/libs</copyTo>
 
                             <!--
-                                Further nest copy into a child directory named through the following expression:
-
-                                    (System.getProperty("os.name") + "-" + System.getProperty("os.arch"))
-                                        .toLowerCase().replace(' ', '_')
+                                Further nest copy into a child directory named through the target's platform.
+                                The directory name is computed by the
+                                `io.questdb.jar.jni.OsInfo.INSTANCE.getPlatform()` method.
                             -->
                             <copyWithPlatformDir>true</copyWithPlatformDir>
 
