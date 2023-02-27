@@ -31,9 +31,13 @@ import java.io.InputStream;
 
 public interface JarJniLoader {
 
-    static <T> void loadLib(Class<T> cls, String jarPathPrefix, LibInfo lib) {
+    static <T> void loadLib(Class<T> cls, String jarPathPrefix, String name, String platformDir) {
         final String sep = jarPathPrefix.endsWith("/") ? "" : "/";
-        final String pathInJar = jarPathPrefix + sep + lib.getPath();
+        String pathInJar = jarPathPrefix + sep;
+        if (platformDir != null) {
+            pathInJar += platformDir + "/";
+        }
+        pathInJar += OsInfo.libPrefix() + name + OsInfo.libSuffix();
         final InputStream is = cls.getResourceAsStream(pathInJar);
         if (is == null) {
             throw new LoadException("Internal error: cannot find " + pathInJar + ", broken package?");
@@ -70,7 +74,7 @@ public interface JarJniLoader {
         }
     }
 
-    static <T> void loadLib(Class<T> cls, String jarPathPrefix, String libName) {
-        loadLib(cls, jarPathPrefix, new LibInfo(libName));
+    static <T> void loadLib(Class<T> cls, String jarPathPrefix, String name) {
+        loadLib(cls, jarPathPrefix, name, OsInfo.platform());
     }
 }

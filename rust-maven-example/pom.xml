@@ -108,8 +108,7 @@
 
                             <!--
                                 Further nest copy into a child directory named through the target's platform.
-                                The directory name is computed by the
-                                `io.questdb.jar.jni.OsInfo.INSTANCE.getPlatform()` method.
+                                The directory name is computed by the `io.questdb.jar.jni.OsInfo.platform()` method.
                             -->
                             <copyWithPlatformDir>true</copyWithPlatformDir>
 

@@ -1,6 +1,8 @@
 package io.questdb.jar.jni;
 
 public enum OsInfo {
+
+    /** Use static methods instead of this singleton. */
     INSTANCE();
 
     private final String platform;
@@ -23,19 +25,38 @@ public enum OsInfo {
                 ? ".exe" : "";
     }
 
-    public String getPlatform() {
+    /**
+     * Returns the platform name, e.g. "linux-amd64".
+     */
+    public static String platform() {
+        return INSTANCE.getPlatform();
+    }
+
+    public static String libPrefix() {
+        return INSTANCE.getLibPrefix();
+    }
+
+    public static String libSuffix() {
+        return INSTANCE.getLibSuffix();
+    }
+
+    public static String exeSuffix() {
+        return INSTANCE.getExeSuffix();
+    }
+
+    private String getPlatform() {
         return platform;
     }
 
-    public String getLibPrefix() {
+    private String getLibPrefix() {
         return libPrefix;
     }
 
-    public String getLibSuffix() {
+    private String getLibSuffix() {
         return libSuffix;
     }
 
-    public String getExeSuffix() {
+    private String getExeSuffix() {
         return exeSuffix;
     }
 }

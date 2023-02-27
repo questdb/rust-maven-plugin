@@ -1,13 +1,12 @@
 package io.questdb.maven.rust;
 
+import io.questdb.jar.jni.OsInfo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import io.questdb.jar.jni.OsInfo;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -90,7 +89,7 @@ public class CrateTest {
         Path expectedBinPath = params.copyToDir;
         if (copyWithPlatformDir) {
             expectedBinPath = expectedBinPath.resolve(
-                OsInfo.INSTANCE.getPlatform());
+                    OsInfo.platform());
         }
         expectedBinPath = expectedBinPath.resolve(mockBinPath.getFileName());
 
@@ -169,7 +168,7 @@ public class CrateTest {
         Path expectedLibPath = params.copyToDir;
         if (copyWithPlatformDir) {
             expectedLibPath = expectedLibPath.resolve(
-                OsInfo.INSTANCE.getPlatform());
+                    OsInfo.platform());
         }
         expectedLibPath = expectedLibPath.resolve(cdylibPath.getFileName());
 
@@ -239,7 +238,7 @@ public class CrateTest {
         crate.copyArtifacts();
 
         Path expectedLibPath = params.copyToDir
-                .resolve(OsInfo.INSTANCE.getPlatform())
+                .resolve(OsInfo.platform())
                 .resolve(cdylibPath.getFileName());
 
         assertTrue(Files.exists(expectedLibPath));

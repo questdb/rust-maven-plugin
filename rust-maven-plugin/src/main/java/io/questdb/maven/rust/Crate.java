@@ -92,13 +92,13 @@ public class Crate {
     }
 
     public static String pinLibName(String name) {
-        return OsInfo.INSTANCE.getLibPrefix() +
+        return OsInfo.libPrefix() +
                 name.replace('-', '_') +
-                OsInfo.INSTANCE.getLibSuffix();
+                OsInfo.libSuffix();
     }
 
     public static String pinBinName(String name) {
-        return name + OsInfo.INSTANCE.getExeSuffix();
+        return name + OsInfo.exeSuffix();
     }
 
     public static Log nullLog() {
@@ -429,7 +429,7 @@ public class Crate {
         }
 
         if (params.copyWithPlatformDir) {
-            copyToDir = copyToDir.resolve(OsInfo.INSTANCE.getPlatform());
+            copyToDir = copyToDir.resolve(OsInfo.platform());
         }
 
         if (!Files.exists(copyToDir, LinkOption.NOFOLLOW_LINKS)) {

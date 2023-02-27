@@ -49,8 +49,7 @@ public class CargoBuildMojo extends CargoMojoBase {
 
     /**
      * Further nest copy into a child directory named through the target's platform.
-     * The computed name matches that of the
-     * `io.questdb.jar.jni.OsInfo.INSTANCE.getPlatform()` method.
+     * The computed name matches that of the `io.questdb.jar.jni.OsInfo.platform()` method.
      * <p>
      * See also `copyTo`.
      */
