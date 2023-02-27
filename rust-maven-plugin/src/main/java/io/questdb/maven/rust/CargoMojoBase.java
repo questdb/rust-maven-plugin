@@ -40,11 +40,20 @@ public abstract class CargoMojoBase extends AbstractMojo {
     protected MavenProject project;
 
     /**
-     * The plugin is enabled by default. You can set <enabled>false</enabled>
-     * to temporarily disable the plugin or a specific execution.
+     * When defined, only run this plugin if the specified environment
+     * variable is set to 1.
      */
-    @Parameter(property = "enabled", defaultValue = "true")
-    private boolean enabled;
+    @Parameter(property = "enabledIfEnvVarIs1")
+    private String enabledIfEnvVar;
+
+    /**
+     * When defined, disable this plugin if the specified environment
+     * variable is set to 1.
+     * <p>
+     * This setting overrides `enabledIfEnvVarIs1`.
+     */
+    @Parameter(property = "disabledIfEnvVarIs1")
+    private String disabledIfEnvVar;
 
     @Parameter(property = "environmentVariables")
     private HashMap<String, String> environmentVariables;
@@ -125,10 +134,34 @@ public abstract class CargoMojoBase extends AbstractMojo {
         return params;
     }
 
+    private boolean checkIsEnabledAndLog() {
+        boolean enabled = true;
+        String logMessage = null;
+        if (enabledIfEnvVar != null) {
+            enabled = "1".equals(System.getenv(enabledIfEnvVar));
+            if (enabled) {
+                logMessage = "Enabling rust-maven-plugin: Env var " + enabledIfEnvVar + " == 1.";
+            } else {
+                logMessage = "Disabling rust-maven-plugin: Env var " + enabledIfEnvVar + " != 1.";
+            }
+        }
+        if (disabledIfEnvVar != null) {
+            enabled = !"1".equals(System.getenv(disabledIfEnvVar));
+            if (enabled) {
+                logMessage = "Enabling rust-maven-plugin: Env var " + disabledIfEnvVar + " != 1.";
+            } else {
+                logMessage = "Disabling rust-maven-plugin: Env var " + disabledIfEnvVar + " = 1.";
+            }
+        }
+        if (logMessage != null) {
+            getLog().info(logMessage);
+        }
+        return enabled;
+    }
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (!enabled) {
-            getLog().info("Skipping run of `rust-maven-plugin`.");
+        if (!checkIsEnabledAndLog()) {
             return;
         }
 
