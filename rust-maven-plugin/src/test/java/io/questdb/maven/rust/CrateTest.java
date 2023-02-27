@@ -7,6 +7,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import io.questdb.jar.jni.OsInfo;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -87,17 +89,12 @@ public class CrateTest {
 
         Path expectedBinPath = params.copyToDir;
         if (copyWithPlatformDir) {
-            expectedBinPath = expectedBinPath.resolve(getPlatformDir());
+            expectedBinPath = expectedBinPath.resolve(
+                OsInfo.INSTANCE.getPlatform());
         }
         expectedBinPath = expectedBinPath.resolve(mockBinPath.getFileName());
 
         assertTrue(Files.exists(expectedBinPath));
-    }
-
-    private String getPlatformDir() {
-        final String osName = System.getProperty("os.name");
-        final String osArch = System.getProperty("os.arch");
-        return (osName + "-" + osArch).toLowerCase().replace(' ', '_');
     }
 
     public void testDefaultBinDebugNoCopyTo() throws Exception {
@@ -171,7 +168,8 @@ public class CrateTest {
 
         Path expectedLibPath = params.copyToDir;
         if (copyWithPlatformDir) {
-            expectedLibPath = expectedLibPath.resolve(getPlatformDir());
+            expectedLibPath = expectedLibPath.resolve(
+                OsInfo.INSTANCE.getPlatform());
         }
         expectedLibPath = expectedLibPath.resolve(cdylibPath.getFileName());
 
@@ -241,7 +239,7 @@ public class CrateTest {
         crate.copyArtifacts();
 
         Path expectedLibPath = params.copyToDir
-                .resolve(getPlatformDir())
+                .resolve(OsInfo.INSTANCE.getPlatform())
                 .resolve(cdylibPath.getFileName());
 
         assertTrue(Files.exists(expectedLibPath));
