@@ -24,7 +24,6 @@
 
 package io.questdb.maven.rust;
 
-import io.questdb.jar.jni.OsInfo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -92,13 +91,13 @@ public class Crate {
     }
 
     public static String pinLibName(String name) {
-        return OsInfo.libPrefix() +
+        return OsInfo.LIB_PREFIX +
                 name.replace('-', '_') +
-                OsInfo.libSuffix();
+                OsInfo.LIB_SUFFIX;
     }
 
     public static String pinBinName(String name) {
-        return name + OsInfo.exeSuffix();
+        return name + OsInfo.EXE_SUFFIX;
     }
 
     public static Log nullLog() {
@@ -429,7 +428,7 @@ public class Crate {
         }
 
         if (params.copyWithPlatformDir) {
-            copyToDir = copyToDir.resolve(OsInfo.platform());
+            copyToDir = copyToDir.resolve(OsInfo.PLATFORM);
         }
 
         if (!Files.exists(copyToDir, LinkOption.NOFOLLOW_LINKS)) {
