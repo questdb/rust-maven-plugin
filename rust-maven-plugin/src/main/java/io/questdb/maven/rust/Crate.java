@@ -377,6 +377,10 @@ public class Crate {
     }
 
     private void addCargoArgs(List<String> args) {
+        if (params.verbosity != null) {
+            args.add(params.verbosity);
+        }
+
         args.add("--target-dir");
         args.add(targetDir.toAbsolutePath().toString());
 
@@ -482,6 +486,7 @@ public class Crate {
     }
 
     public static class Params {
+        public String verbosity;
         public HashMap<String, String> environmentVariables;
         public String cargoPath;
         public boolean release;

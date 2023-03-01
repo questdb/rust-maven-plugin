@@ -130,6 +130,10 @@
                             <path>src/main/rust/str-reverse-binary</path>
                             <release>true</release>
                             <copyTo>${project.build.directory}/bin</copyTo>
+                            <features>
+                                <feature>header</feature>
+                                <feature>footer</feature>
+                            </features>
                         </configuration>
                     </execution>
                     <execution>
@@ -153,6 +157,8 @@
 
                             <!-- Specify `true` to test a release (rather than debug) build. -->
                             <release>false</release>
+
+                            <verbosity>-v</verbosity>
 
                             <environmentVariables>
                                 <REVERSED_STR_PREFIX>Testing prefix</REVERSED_STR_PREFIX>

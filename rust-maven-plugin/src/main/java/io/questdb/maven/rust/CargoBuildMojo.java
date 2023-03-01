@@ -67,7 +67,7 @@ public class CargoBuildMojo extends CargoMojoBase {
         crate.copyArtifacts();
     }
 
-    private Crate.Params extractCrateParams() {
+    private Crate.Params extractCrateParams() throws MojoExecutionException {
         final Crate.Params params = getCommonCrateParams();
         if (copyTo != null) {
             Path copyToDir = Paths.get(copyTo);

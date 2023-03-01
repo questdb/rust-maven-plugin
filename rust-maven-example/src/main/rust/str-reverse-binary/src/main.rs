@@ -31,7 +31,15 @@ fn main() -> ExitCode {
     match args.len() {
         2 => {
             let reversed: String = args[1].chars().rev().collect();
+
+            #[cfg(feature = "header")]
+            println!(">>>>>>>>>>>>>>>>>>>>>>>>>");
+
             println!("{}", reversed);
+
+            #[cfg(feature = "footer")]
+            println!("<<<<<<<<<<<<<<<<<<<<<<<<<<");
+
             ExitCode::SUCCESS
         },
         _ => {

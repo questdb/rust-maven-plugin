@@ -29,6 +29,7 @@ import org.junit.Test;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +54,11 @@ public class BinaryTest {
                 .collect(Collectors.toList());
 
         assertEquals(0, process.waitFor());
-        assertEquals(Collections.singletonList("!dlroW olleH"), output);
+        final List<String> exp = new ArrayList<>();
+        Collections.addAll(exp,
+                ">>>>>>>>>>>>>>>>>>>>>>>>>",
+                "!dlroW olleH",
+                "<<<<<<<<<<<<<<<<<<<<<<<<<<");
+        assertEquals(exp, output);
     }
 }

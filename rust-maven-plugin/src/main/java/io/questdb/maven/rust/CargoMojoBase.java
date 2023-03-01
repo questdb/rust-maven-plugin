@@ -25,6 +25,7 @@
 package io.questdb.maven.rust;
 
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
@@ -85,10 +86,33 @@ public abstract class CargoMojoBase extends AbstractMojo {
     private boolean noDefaultFeatures;
 
     /**
+     * Set the verbosity level, forwarded to Cargo.
+     * Valid values are "", "-q", "-v", "-vv".
+     */
+    @Parameter(property = "verbosity")
+    private String verbosity;
+
+    /**
      * Additional args to pass to cargo.
      */
     @Parameter(property = "extra-args")
     private String[] extraArgs;
+
+    protected String getVerbosity() throws MojoExecutionException {
+        if (verbosity == null) {
+            return null;
+        }
+        switch (verbosity) {
+            case "":
+                return null;
+            case "-q":
+            case "-v":
+            case "-vv":
+                return verbosity;
+            default:
+                throw new MojoExecutionException("Invalid verbosity: " + verbosity);
+        }
+    }
 
     protected Path getCrateRoot() {
         Path crateRoot = Paths.get(path);
@@ -104,8 +128,9 @@ public abstract class CargoMojoBase extends AbstractMojo {
                 "rust-maven-plugin");
     }
 
-    protected Crate.Params getCommonCrateParams() {
+    protected Crate.Params getCommonCrateParams() throws MojoExecutionException {
         final Crate.Params params = new Crate.Params();
+        params.verbosity = getVerbosity();
         params.environmentVariables = environmentVariables;
         params.cargoPath = cargoPath;
         params.release = release;
