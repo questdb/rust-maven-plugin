@@ -24,6 +24,9 @@
 
 package io.questdb.jar.jni;
 
+/**
+ * Exception thrown when a native library cannot be loaded.
+ */
 public class LoadException extends RuntimeException {
     public LoadException(String message) {
         super(message);
