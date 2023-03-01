@@ -2,7 +2,7 @@
 
 <img src="./artwork/logo_outline_text.svg" alt="rust-maven-plugin">
 
-Build Rust Cargo crates within a Java Maven Project with this plugin.
+Build Rust Cargo crates within a Java Maven Project.
 
 ```shell
 $ mvn clean package
@@ -21,16 +21,22 @@ $ mvn clean package
 
 # Plugin Features
 
+* The plugin delegates the build to `cargo` and supports most of `cargo build`'s features.
 * The primary use case is to simplify the build process of
   [Rust JNI libs](https://crates.io/crates/jni) inside a Java
-  [Maven](https://maven.apache.org/) project by calling `cargo` build.
+  [Maven](https://maven.apache.org/) project.
 * Additionally, the plugin can also compile binaries.
-* The plugin can copy complied binaries to a custom location and bundle them inside of `.jar` files.
+* The plugin can copy complied binaries to a custom location and so they can be bundled inside of `.jar` files.
 * Support for invoking `cargo test` during `mvn test`.
-* If Rust's `cargo` isn't found, points users to https://www.rust-lang.org/tools/install.
+* Points to https://www.rust-lang.org/tools/install if `cargo` isn't found.
+
+## Optional supporting loader library
 
 For your convenience, we've also made `jar-jni` available:
 An optional Java library to load JNI dynamic libraries from JARs.
+
+Both the plugin and the library support a directory naming convention structure to support compiling
+for a multitude of platforms.
 
 # Complete Example
 See the [`rust-maven-example`](rust-maven-example/) directory for a working
@@ -44,7 +50,6 @@ JAR file.
 Edit your `pom.xml` to add the plugin:
 
 ```xml
-<!-- pom.xml -->
 <project ...>
     ...
 
@@ -178,6 +183,12 @@ source tree.
 
 ## Binaries in source tree
 
+Placing binaries in the source tree may be the "pragmatic" approach if you need
+to support IntelliJ which, by default, will not actually invoke `maven compile`
+during its usual operation.
+
+If you know a better way around this in IntelliJ do contact us!
+
 If you prefer to keep your binaries in the source tree, then you instead
 configure to copy binaries to the [`resources`](https://stackoverflow.com/questions/25786185/what-is-the-purpose-for-the-resource-folder-in-maven) directory
 instead:
@@ -187,18 +198,40 @@ instead:
 <copyWithPlatformDir>true</copyWithPlatformDir>
 ```
 
-Placing binaries in the source tree may be the "pragmatic" approach if you need
-to support IntelliJ which, by default, will not actually invoke `maven compile`
-during its usual operation.
-
 In such case, you may opt to move the `rust-maven-plugin` inside a
 [Maven Profile](https://maven.apache.org/guides/introduction/introduction-to-profiles.html) and only build the Rust
 code when you need to.
 
+```xml
+<project ...>
+    ...
+    <profiles>
+        <profile>
+            <id>rust</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.questdb</groupId>
+                        <artifactId>rust-maven-plugin</artifactId>
+                        <version>1.0.0-SNAPSHOT</version>
+...
+```
+
+You can then enable the profile in Maven via `mvn clean package -Prust ...`.
+
 ## Supporting Multiple Platforms
 
-Here `<copyWithPlatformDir>true</copyWithPlatformDir>` will further nest the binaries in a directory named after the
-platform (e.g. `linux-amd64`).
+During the binary copy step, the `<copyWithPlatformDir>true</copyWithPlatformDir>` config setting (used in the examples
+above) will further nest the binaries in a directory named after the platform.
+
+```
+target
+    classes
+        io/questdb/example/rust/libs/
+            linux-amd64/libstr_reverse.so
+            mac_os_x-aarch64/libstr_reverse.dylib
+            windows-amd64/str_reverse.dll
+```
 
 If you only intend to target one single platform (e.g. linux-amd64), then you
 don't need `<copyWithPlatformDir>true</copyWithPlatformDir>` and the plugin will not create a nested directory.
@@ -230,24 +263,24 @@ Assuming you've compiled with `<copyWithPlatformDir>true</copyWithPlatformDir>`,
 the binary from the `.jar` file with:
 
 ```java
-    JarJniLoader.loadLib(
-        Main.class,
-  
-        // A platform-specific path is automatically suffixed to path below.
-        "/io/questdb/example/rust/libs",
-  
-        // The "lib" prefix and ".so|.dynlib|.dll" suffix are added automatically as needed.
-        "str_reverse");
+JarJniLoader.loadLib(
+    Main.class,
+
+    // A platform-specific path is automatically suffixed to path below.
+    "/io/questdb/example/rust/libs",
+
+    // The "lib" prefix and ".so|.dynlib|.dll" suffix are added automatically as needed.
+    "str_reverse");
 ```
 
 If instead you compiled with `<copyWithPlatformDir>false</copyWithPlatformDir>`, then:
 
 ```java
-    JarJniLoader.loadLib(
-        Main.class,
-        "/io/questdb/example/rust/libs",
-        "str_reverse",
-        null);
+JarJniLoader.loadLib(
+    Main.class,
+    "/io/questdb/example/rust/libs",
+    "str_reverse",
+    null);
 ```
 
 # Contributing & Support
@@ -261,7 +294,7 @@ If you want to talk to us, we're on [Slack](https://slack.questdb.io/).
 
 ## Building
 
-To build the project and example:
+To build the project and run the example:
 
 ```shell
 git clone https://github.com/questdb/rust-maven-plugin.git
@@ -270,7 +303,18 @@ mvn clean package
 java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar:./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.example.rust.Main
 ```
 
-# Thanks to
+## Testing Against Another Project
 
-* OktaDev for covering custom Maven plugins on YouTube https://www.youtube.com/watch?v=wHX4j0z-sUU - It's a great introduction.
-* The CMake maven plugin project https://github.com/cmake-maven-project/cmake-maven-project for showing how it's done.
+For test your changes against another project you need to install the `jar-jni` and `rust-maven-plugin` artifacts locally in your Maven cache:
+
+```shell
+cd jar-jni
+mnv clean install
+cd ../rust-maven-plugin
+mvn clean install
+```
+
+## Thanks to
+
+* OktaDev for covering custom Maven plugins on YouTube https://www.youtube.com/watch?v=wHX4j0z-sUU - It's a great introduction to Maven plugins.
+* The CMake maven plugin project https://github.com/cmake-maven-project/cmake-maven-project for inspiration.
