@@ -24,9 +24,6 @@
 
 package io.questdb.jar.jni;
 
-// Note: Due to Java 8 / Java 11 packaging reasons, this class is duplicated in
-// rust-maven-plugin/src/main/java/io/questdb/maven/rust/OsInfo.java
-
 /**
  * Information about the current operating system.
  */

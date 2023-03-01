@@ -1,5 +1,6 @@
 package io.questdb.maven.rust;
 
+import io.questdb.jar.jni.OsInfo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.After;
 import org.junit.Before;
