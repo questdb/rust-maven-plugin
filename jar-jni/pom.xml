@@ -50,7 +50,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>io.questdb.rust</Automatic-Module-Name>
+                            <Automatic-Module-Name>io.questdb.jar.jni</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>
