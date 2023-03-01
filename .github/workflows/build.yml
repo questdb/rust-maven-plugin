@@ -36,7 +36,7 @@ jobs:
           cache: 'maven'
 
       - name: Build with Maven
-        run: mvn package -DskipTests
+        run: mvn package -DskipTests=true
 
       - name: Running tests
         run: mvn test
