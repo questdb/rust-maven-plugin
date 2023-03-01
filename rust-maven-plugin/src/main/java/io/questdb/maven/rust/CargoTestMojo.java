@@ -33,7 +33,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 @Mojo(name = "test", defaultPhase = LifecyclePhase.TEST, threadSafe = true)
 public class CargoTestMojo extends CargoMojoBase {
     /**
-     * Skips running tests with building with `mvn package -DskipTests=true`.
+     * Skips running tests when building with `mvn package -DskipTests=true`.
      */
     @Parameter(property = "skipTests", defaultValue = "false")
     private boolean skipTests;
