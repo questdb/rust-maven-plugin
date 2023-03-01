@@ -22,37 +22,22 @@
  *
  ******************************************************************************/
 
-package io.questdb.example.rust;
+package io.questdb.maven.rust;
 
-import org.junit.Test;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.assertEquals;
-
-public class BinaryTest {
-
-    @Test
-    public void testBinary() throws Exception {
-        File binaryFile = new File("target/bin/str-reverse-binary");
-
-        Process process = new ProcessBuilder(
-                Arrays.asList(
-                        binaryFile.getAbsolutePath(),
-                        "Hello World!"))
-                .start();
-
-        List<String> output = new BufferedReader(new InputStreamReader(process.getInputStream()))
-                .lines()
-                .collect(Collectors.toList());
-
-        assertEquals(0, process.waitFor());
-        assertEquals(Collections.singletonList("!dlroW olleH"), output);
+@Mojo(name = "test", defaultPhase = LifecyclePhase.TEST, threadSafe = true)
+public class CargoTestMojo extends CargoMojoBase {
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        final Crate crate = new Crate(
+                getCrateRoot(),
+                getTargetRootDir(),
+                getCommonCrateParams());
+        crate.setLog(getLog());
+        crate.test();
     }
 }

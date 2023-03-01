@@ -24,248 +24,60 @@
 
 package io.questdb.maven.rust;
 
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.Executors;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * An example of a Maven plugin.
  */
 @Mojo(name = "build", defaultPhase = LifecyclePhase.COMPILE, threadSafe = true)
-public class CargoBuildMojo extends AbstractMojo {
-
-    @Parameter(property = "project", readonly = true)
-    protected MavenProject project;
-
-    @Parameter(property = "environmentVariables")
-    HashMap<String, String> environmentVariables;
-
-    /**
-     * Path to the `cargo` command. If unset or set to "cargo", uses $PATH.
-     */
-    @Parameter(property = "cargoPath", defaultValue = "cargo")
-    private String cargoPath;
-
-    /**
-     * Path to the Rust crate (or workspace) to build.
-     */
-    @Parameter(property = "path", required = true)
-    private String path;
-
-    /**
-     * Build artifacts in release mode, with optimizations.
-     * Defaults to "false" and creates a debug build.
-     * Equivalent to Cargo's `--release` option.
-     */
-    @Parameter(property = "release", defaultValue = "false")
-    private boolean release;
-
-    /**
-     * List of features to activate.
-     * If not specified, default features are activated.
-     * Equivalent to Cargo's `--features` option.
-     */
-    @Parameter(property = "features")
-    private String[] features;
-
-    /**
-     * Activate all available features.
-     * Defaults to "false".
-     * Equivalent to Cargo's `--all-features` option.
-     */
-    @Parameter(property = "all-features", defaultValue = "false")
-    private boolean allFeatures;
-
-    /**
-     * Do not activate the `default` feature.
-     * Defaults to "false".
-     * Equivalent to Cargo's `--no-default-features` option.
-     */
-    @Parameter(property = "no-default-features", defaultValue = "false")
-    private boolean noDefaultFeatures;
-
-    /**
-     * Build all tests.
-     * Defaults to "false".
-     * Equivalent to Cargo's `--tests` option.
-     */
-    @Parameter(property = "tests", defaultValue = "false")
-    private boolean tests;
-
-    /**
-     * Additional args to pass to cargo.
-     */
-    @Parameter(property = "extra-args")
-    private String[] extraArgs;
-
+public class CargoBuildMojo extends CargoMojoBase {
     /**
      * Location to copy the built Rust binaries to.
      * If unset, the binaries are not copied and remain in the target directory.
-     *
+     * <p>
      * See also `copyWithPlatformDir`.
      */
     @Parameter(property = "copyTo")
     private String copyTo;
 
     /**
-     * Further nest copy into a subdirectory named through the following expression:
-     * (System.getProperty("os.name") + "_" + System.getProperty("os.arch")).toLowerCase();
-     *
+     * Further nest copy into a child directory named through the target's platform.
+     * The computed name matches that of the `io.questdb.jar.jni.OsInfo.platform()` method.
+     * <p>
      * See also `copyTo`.
      */
     @Parameter(property = "copyWithPlatformDir")
     private boolean copyWithPlatformDir;
 
-    private String getCargoPath() {
-        String path = cargoPath;
-
-        final boolean isWindows = System.getProperty("os.name")
-                .toLowerCase().startsWith("windows");
-
-        // Expand "~" to user's home directory.
-        // This works around a limitation of ProcessBuilder.
-        if (!isWindows && cargoPath.startsWith("~/")) {
-            path = System.getProperty("user.home") + cargoPath.substring(1);
-        }
-
-        return path;
-    }
-
-    private File getPath() {
-        File file = new File(path);
-        if (file.isAbsolute()) {
-            return file;
-        } else {
-            return new File(project.getBasedir(), path);
-        }
-    }
-
-    private String getName() {
-        final String[] components = path.split("/");
-        return components[components.length - 1];
-    }
-
-    private File getTargetDir() {
-        return new File(new File(new File(project.getBuild().getDirectory()), "rust-maven-plugin"), getName());
-    }
-
-    private void runCommand(List<String> args)
-            throws IOException, InterruptedException, MojoExecutionException {
-        final ProcessBuilder processBuilder = new ProcessBuilder(args);
-        processBuilder.redirectErrorStream(true);
-        processBuilder.environment().putAll(environmentVariables);
-
-        // Set the current working directory for the cargo command.
-        processBuilder.directory(getPath());
-        final Process process = processBuilder.start();
-        Log log = getLog();
-        Executors.newSingleThreadExecutor().submit(() -> {
-            new BufferedReader(new InputStreamReader(process.getInputStream()))
-                    .lines()
-                    .forEach(log::info);
-        });
-
-        final int exitCode = process.waitFor();
-        if (exitCode != 0) {
-            throw new MojoExecutionException("Cargo command failed with exit code " + exitCode);
-        }
-    }
-
-    private void cargo(List<String> args) throws MojoExecutionException {
-        String cargoPath = getCargoPath();
-        final List<String> cmd = new ArrayList<>();
-        cmd.add(cargoPath);
-        cmd.addAll(args);
-        getLog().info("Working directory: " + getPath());
-        if (!environmentVariables.isEmpty()) {
-            getLog().info("Environment variables:");
-            for (String key : environmentVariables.keySet()) {
-                getLog().info("  " + key + "=" + Shlex.quote(environmentVariables.get(key)));
-            }
-        }
-        getLog().info("Running: " + Shlex.quote(cmd));
-        try {
-            runCommand(cmd);
-        } catch (IOException | InterruptedException e) {
-            CargoInstalledChecker.INSTANCE.check(getLog(), cargoPath);
-            throw new MojoExecutionException("Failed to invoke cargo", e);
-        }
-    }
-
-    private File getCopyToDir() throws MojoExecutionException {
-        File copyToDir = new File(copyTo);
-        if (!copyToDir.isAbsolute()) {
-            copyToDir = new File(project.getBasedir(), copyTo);
-        }
-        if (copyWithPlatformDir) {
-            final String osName = System.getProperty("os.name").toLowerCase();
-            final String osArch = System.getProperty("os.arch").toLowerCase();
-            final String platform = (osName + "-" + osArch).replace(' ', '_');
-            copyToDir = new File(copyToDir, platform);
-        }
-        if (!copyToDir.exists()) {
-            if (!copyToDir.mkdirs()) {
-                throw new MojoExecutionException("Failed to create directory " + copyToDir);
-            }
-        }
-        if (!copyToDir.isDirectory()) {
-            throw new MojoExecutionException(copyToDir + " is not a directory");
-        }
-        return copyToDir;
-    }
-
     @Override
-    public void execute() throws MojoExecutionException {
-        List<String> args = new ArrayList<>();
-        args.add("build");
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        final Crate crate = new Crate(
+                getCrateRoot(),
+                getTargetRootDir(),
+                extractCrateParams());
+        crate.setLog(getLog());
+        crate.build();
+        crate.copyArtifacts();
+    }
 
-        args.add("--target-dir");
-        args.add(getTargetDir().getAbsolutePath());
-
-        if (release) {
-            args.add("--release");
+    private Crate.Params extractCrateParams() {
+        final Crate.Params params = getCommonCrateParams();
+        if (copyTo != null) {
+            Path copyToDir = Paths.get(copyTo);
+            if (!copyToDir.isAbsolute()) {
+                copyToDir = project.getBasedir().toPath()
+                        .resolve(copyToDir);
+            }
+            params.copyToDir = copyToDir;
         }
-
-        if (allFeatures) {
-            args.add("--all-features");
-        }
-
-        if (noDefaultFeatures) {
-            args.add("--no-default-features");
-        }
-
-        if (features != null && features.length > 0) {
-            args.add("--features");
-            args.add(String.join(",", features));
-        }
-
-        if (tests) {
-            args.add("--tests");
-        }
-
-        if (extraArgs != null) {
-            Collections.addAll(args, extraArgs);
-        }
-        cargo(args);
-        
-        // if/when --out-dir is stabilized then the outputRedirector function should be replaced with just the following args:
-        // args.add("--out-dir")
-        // args.add(getCopyToDir());
-        
-        new ManualOutputRedirector(getLog(), getName(), release, getPath(), getTargetDir(), getCopyToDir()).copyArtifacts();
+        params.copyWithPlatformDir = copyWithPlatformDir;
+        return params;
     }
 }

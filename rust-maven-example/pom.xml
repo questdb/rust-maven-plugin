@@ -107,10 +107,8 @@
                             <copyTo>${project.build.directory}/classes/io/questdb/example/rust/libs</copyTo>
 
                             <!--
-                                Further nest copy into a child directory named through the following expression:
-
-                                    (System.getProperty("os.name") + "-" + System.getProperty("os.arch"))
-                                        .toLowerCase().replace(' ', '_')
+                                Further nest copy into a child directory named through the target's platform.
+                                The directory name is computed by the `io.questdb.jar.jni.OsInfo.platform()` method.
                             -->
                             <copyWithPlatformDir>true</copyWithPlatformDir>
 
@@ -123,6 +121,7 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <!-- The plugin can also be used to compile binaries. -->
                         <id>str-reverse-binary</id>
                         <goals>
                             <goal>build</goal>
@@ -131,6 +130,33 @@
                             <path>src/main/rust/str-reverse-binary</path>
                             <release>true</release>
                             <copyTo>${project.build.directory}/bin</copyTo>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>str-reverse-test</id>
+
+                        <!--
+                            This execution will run the `cargo test` command on the crate.
+                            This is useful for running unit tests written in Rust.
+                        -->
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+
+                        <configuration>
+                            <!--
+                                Path to the crate.
+                                One you've genenrally built earlier with a
+                                <goal>build</goal> execution.
+                            -->
+                            <path>src/main/rust/str-reverse</path>
+
+                            <!-- Specify `true` to test a release (rather than debug) build. -->
+                            <release>false</release>
+
+                            <environmentVariables>
+                                <REVERSED_STR_PREFIX>Testing prefix</REVERSED_STR_PREFIX>
+                            </environmentVariables>
                         </configuration>
                     </execution>
                 </executions>

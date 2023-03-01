@@ -22,10 +22,10 @@
  *
  ******************************************************************************/
 
-package io.questdb.jar.jni;
+package io.questdb.maven.rust;
 
 // Note: Due to Java 8 / Java 11 packaging reasons, this class is duplicated in
-// rust-maven-plugin/src/main/java/io/questdb/maven/rust/OsInfo.java
+// jar-jni/src/main/java/io/questdb/jar/jni/OsInfo.java
 
 /**
  * Information about the current operating system.
@@ -70,4 +70,3 @@ public abstract class OsInfo {
                 ? ".exe" : "";
     }
 }
-

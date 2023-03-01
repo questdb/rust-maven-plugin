@@ -26,14 +26,18 @@ package io.questdb.jar.jni;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public interface JarJniLoader {
 
-    static <T> void loadLib(Class<T> cls, String jarPathPrefix, LibInfo lib) {
+    static <T> void loadLib(Class<T> cls, String jarPathPrefix, String name, String platformDir) {
         final String sep = jarPathPrefix.endsWith("/") ? "" : "/";
-        final String pathInJar = jarPathPrefix + sep + lib.getPath();
+        String pathInJar = jarPathPrefix + sep;
+        if (platformDir != null) {
+            pathInJar += platformDir + "/";
+        }
+        pathInJar += OsInfo.LIB_PREFIX + name + OsInfo.LIB_SUFFIX;
         final InputStream is = cls.getResourceAsStream(pathInJar);
         if (is == null) {
             throw new LoadException("Internal error: cannot find " + pathInJar + ", broken package?");
@@ -70,7 +74,7 @@ public interface JarJniLoader {
         }
     }
 
-    static <T> void loadLib(Class<T> cls, String jarPathPrefix, String libName) {
-        loadLib(cls, jarPathPrefix, new LibInfo(libName));
+    static <T> void loadLib(Class<T> cls, String jarPathPrefix, String name) {
+        loadLib(cls, jarPathPrefix, name, OsInfo.PLATFORM);
     }
 }

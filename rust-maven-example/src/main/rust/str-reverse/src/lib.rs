@@ -39,3 +39,11 @@ pub extern "system" fn Java_io_questdb_example_rust_Main_reversedString(
         .expect("Couldn't create java string!");
     output.into_raw()
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_rubber_duck() {
+        assert_ne!("rubber", "duck");
+    }
+}
