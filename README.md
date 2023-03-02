@@ -112,16 +112,32 @@ To enable running tests:
 </execution>
 ```
 
-# Customizing the build step
+# Customizing the build and tests steps
+
+The settings below go in the `<configuration>` section of the `<execution>` block.
+
+## Custom path to the `cargo` command
 
 You can also specify this on the command line via `mvn ... -DcargoPath=...`.
 
-## Release builds and custom `cargo` flags
+## Verbosity
+
+The plugin can be configured to forward various verbosity flags to `cargo` by setting
+`<verbosity>-v</verbosity>` (or other value) in the `<configuration>` block.
+
+Accepted values are:
+
+| Value                                 | Description                                     |
+|---------------------------------------|-------------------------------------------------|
+| `<verbosity></verbosity>` (or no tag) | Default - no additional flags passed to `cargo` |
+| `<verbosity>-q</verbosity>`           | Quiet                                           |
+| `<verbosity>-v</verbosity>`           | Verbose                                         |
+| `<verbosity>-vv</verbosity>`          | Very verbose                                    |
+
+## Release builds
 
 The plugin can be configured to build in release mode by setting
-`<release>true</release>` in the `<configuration>` block. This applies to test runs as well.
-
-Other supported `cargo` flags are:
+`<release>true</release>` in the `<configuration>` block.
 
 ## Specifying Crate Features
 

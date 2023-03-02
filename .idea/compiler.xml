@@ -8,7 +8,6 @@
         <outputRelativeToContentRoot value="true" />
         <module name="rust-maven-example" />
         <module name="rust-maven-plugin (1)" />
-        <module name="rust-maven-plugin" />
         <module name="jar-jni" />
       </profile>
     </annotationProcessing>
