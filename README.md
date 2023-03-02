@@ -187,6 +187,19 @@ Regular `mvn clean` will also clean the Rust build without additional config.
 This is because the plugin builds crates inside Maven's `target` build
 directory, via `cargo build --target-dir ...`.
 
+# De-duplicating build directories when invoking `cargo build` without Maven
+
+If you (or your IDE) end up invoking `cargo build` on your Rust crate without
+the plugin, you'll notice this creates a duplicate `target` dir that will not
+be cleaned at the next `mvn clean`.
+
+To avoid this duplicate `target` directory problem, consider adding
+`.cargo/config.toml` files configured to match the `--target-dir` argument
+passed by this plugin.
+
+See [.cargo/config.toml](rust-maven-example/src/main/rust/str-reverse/.cargo/config.toml)
+from the `str-reverse` crate in the example.
+
 # Bundling binaries in the `.jar` file
 
 The `<copyTo>` configuration allows copying the binaries anywhere. The example

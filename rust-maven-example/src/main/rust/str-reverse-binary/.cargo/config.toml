@@ -1,0 +1,3 @@
+[build]
+# <pom.xml:parentDir>/target/rust-maven-plugin/str-reverse-binary
+target-dir = "../../../../target/rust-maven-plugin/str-reverse-binary"
