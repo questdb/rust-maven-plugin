@@ -61,14 +61,7 @@ public interface JarJniLoader {
                 tempLib = File.createTempFile(pathInJar.substring(0, dot), pathInJar.substring(dot));
                 // copy to tempLib
                 try (FileOutputStream out = new FileOutputStream(tempLib)) {
-                    byte[] buf = new byte[4096];
-                    while (true) {
-                        int read = is.read(buf);
-                        if (read == -1) {
-                            break;
-                        }
-                        out.write(buf, 0, read);
-                    }
+                    StreamTransfer.copyToStream(is, out);
                 } finally {
                     tempLib.deleteOnExit();
                 }

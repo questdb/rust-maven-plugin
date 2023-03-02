@@ -123,9 +123,9 @@ The plugin can be configured to build in release mode by setting
 
 Other supported `cargo` flags are:
 
-## Features
+## Specifying Crate Features
 
-The equivalent of `cargo build --features feat1 feat2 feat3` is
+The equivalent of `cargo build --features feat1,feat2,feat3` is
 
 ```xml
 <features>

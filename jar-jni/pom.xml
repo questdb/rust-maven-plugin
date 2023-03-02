@@ -39,48 +39,78 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java9.sourceDirectory>${project.basedir}/src/main/java9</java9.sourceDirectory>
+        <java9.build.outputDirectory>${project.build.directory}/classes-java9</java9.build.outputDirectory>
     </properties>
 
-    <profiles>
-        <profile>
-            <id>java-module</id>
-            <activation>
-                <jdk>[9,)</jdk>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.moditect</groupId>
-                        <artifactId>moditect-maven-plugin</artifactId>
-                        <version>1.0.0.RC2</version>
-                        <executions>
-                            <execution>
-                                <id>add-module-infos</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>add-module-info</goal>
-                                </goals>
-                                <configuration>
-                                    <jvmVersion>9</jvmVersion>
-                                    <overwriteExistingFiles>true</overwriteExistingFiles>
-                                    <module>
-                                        <moduleInfo>
-                                            <name>io.questdb.jar.jni</name>
-                                            <!-- export everything -->
-                                            <exports>*;</exports>
-                                            <!-- declare services consumed by the artifact -->
-                                            <addServiceUses>true</addServiceUses>
-                                        </moduleInfo>
-                                    </module>
-                                    <jdepsExtraArgs>
-                                        <arg>--multi-release=9</arg>
-                                    </jdepsExtraArgs>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+    <build>
+        <plugins>
+            <plugin>
+                <!--
+                    We need to support both Java 8 and Java 9+ because of modules.
+                    We use the plugins below to compile a multi-release JAR.
+
+                    See:
+                      * https://nipafx.dev/multi-release-jars-multiple-java-versions/
+                      * https://in.relation.to/2017/02/13/building-multi-release-jars-with-maven/
+                -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>compile-java9</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${java9.build.outputDirectory}"/>
+                                <javac srcdir="${java9.sourceDirectory}"
+                                       destdir="${java9.build.outputDirectory}"
+                                       classpath="${project.build.outputDirectory}"
+                                       includeantruntime="false"
+                                       source="9" />
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/META-INF/versions/9</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${java9.build.outputDirectory}</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Multi-Release>true</Multi-Release>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
