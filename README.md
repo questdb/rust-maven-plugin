@@ -118,6 +118,9 @@ The settings below go in the `<configuration>` section of the `<execution>` bloc
 
 ## Custom path to the `cargo` command
 
+If `cargo` isn't in your `PATH`, you can specify the path to the `cargo` command with the `<cargoPath>`
+configuration option.
+
 You can also specify this on the command line via `mvn ... -DcargoPath=...`.
 
 ## Verbosity
@@ -177,11 +180,6 @@ In the `<configuration>` section, add:
     <RUSTFLAGS>-C target-cpu=native</RUSTFLAGS>
 </environmentVariables>
 ```
-
-## Custom path to the `cargo` command
-
-If `cargo` isn't in your `PATH`, you can specify the path to the `cargo` command with the `<cargoPath>`
-configuration option.
 
 # Cleaning the Rust build
 
