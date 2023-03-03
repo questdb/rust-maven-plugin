@@ -26,14 +26,29 @@ package io.questdb.jar.jni;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
+/**
+ * Loads native libraries from JAR files.
+ */
 public interface JarJniLoader {
-
-    static <T> void loadLib(Class<T> cls, String jarPathPrefix, LibInfo lib) {
+    /**
+     * Loads a native library from a JAR file.
+     *
+     * @param cls           The class to use for loading the library.
+     * @param jarPathPrefix The path prefix to the library in the JAR file.
+     * @param name          The name of the library, sans "lib" prefix and ".so|.dll|.dylib" suffix.
+     * @param platformDir   The platform-specific subdirectory (inside jarPathPrefix) to load the library from,
+     *                      or null to search for the dynamic library directly within jarPathPrefix.
+     */
+    static <T> void loadLib(Class<T> cls, String jarPathPrefix, String name, String platformDir) {
         final String sep = jarPathPrefix.endsWith("/") ? "" : "/";
-        final String pathInJar = jarPathPrefix + sep + lib.getPath();
+        String pathInJar = jarPathPrefix + sep;
+        if (platformDir != null) {
+            pathInJar += platformDir + "/";
+        }
+        pathInJar += OsInfo.LIB_PREFIX + name + OsInfo.LIB_SUFFIX;
         final InputStream is = cls.getResourceAsStream(pathInJar);
         if (is == null) {
             throw new LoadException("Internal error: cannot find " + pathInJar + ", broken package?");
@@ -46,14 +61,7 @@ public interface JarJniLoader {
                 tempLib = File.createTempFile(pathInJar.substring(0, dot), pathInJar.substring(dot));
                 // copy to tempLib
                 try (FileOutputStream out = new FileOutputStream(tempLib)) {
-                    byte[] buf = new byte[4096];
-                    while (true) {
-                        int read = is.read(buf);
-                        if (read == -1) {
-                            break;
-                        }
-                        out.write(buf, 0, read);
-                    }
+                    StreamTransfer.copyToStream(is, out);
                 } finally {
                     tempLib.deleteOnExit();
                 }
@@ -70,7 +78,26 @@ public interface JarJniLoader {
         }
     }
 
-    static <T> void loadLib(Class<T> cls, String jarPathPrefix, String libName) {
-        loadLib(cls, jarPathPrefix, new LibInfo(libName));
+    /**
+     * Loads a native library from a JAR file.
+     * <p>
+     * The library is loaded from the platform-specific subdirectory of the jarPathPrefix.
+     * <p>
+     * The platform-specific subdirectory derived from the current platform and
+     * the architecture of the JVM as determined by {@link OsInfo#PLATFORM}.
+     * <p>
+     * For example if executing, <code>JarJniLoader.loadLib(MyClass.class, "/native", "mylib");</code>
+     * on a 64-bit x86 Linux system, the library will be loaded from "/native/linux-amd64/libmylib.so"
+     * from the same JAR file that contains MyClass.class.
+     * If executing on an Apple Silicon Macbook, the library will be loaded from
+     * "/native/mac_os_x-arm64/libmylib.dylib".
+     * From Windows 11, the library will be loaded from "/native/windows-amd64/mylib.dll" (note, no "lib" prefix).
+     *
+     * @param cls           The class to use for loading the library.
+     * @param jarPathPrefix The path prefix to the library in the JAR file.
+     * @param name          The name of the library, sans "lib" prefix and ".so|.dll|.dylib" suffix.
+     */
+    static <T> void loadLib(Class<T> cls, String jarPathPrefix, String name) {
+        loadLib(cls, jarPathPrefix, name, OsInfo.PLATFORM);
     }
 }

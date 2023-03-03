@@ -35,8 +35,7 @@
 
     <name>Rust Maven Plugin</name>
     <description>Embed Rust Cargo projects in Java</description>
-
-    <url>https://github.com/questdb/rust-maven-project</url>
+    <url>https://github.com/questdb/rust-maven-plugin</url>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -44,12 +43,30 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+    <developers>
+        <developer>
+            <name>QuestDB Team</name>
+            <email>hello@questdb.io</email>
+            <organization>QuestDB</organization>
+            <organizationUrl>https://questdb.io/</organizationUrl>
+        </developer>
+    </developers>
     <scm>
-        <url>https://github.com/questdb/rust-maven-project</url>
-        <connection>scm:git:https://github.com/questdb/rust-maven-project.git</connection>
-        <developerConnection>scm:git:git@github.com:questdb/rust-maven-project.git</developerConnection>
+        <url>https://github.com/questdb/rust-maven-plugin</url>
+        <connection>scm:git:https://github.com/questdb/rust-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:questdb/rust-maven-plugin.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>central</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>central</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+    </distributionManagement>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -59,6 +76,11 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>io.questdb</groupId>
+            <artifactId>jar-jni</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
@@ -78,9 +100,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.moandjiezana.toml</groupId>
-            <artifactId>toml4j</artifactId>
-            <version>0.7.2</version>
+            <groupId>org.tomlj</groupId>
+            <artifactId>tomlj</artifactId>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

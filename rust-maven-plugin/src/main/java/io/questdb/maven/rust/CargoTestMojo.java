@@ -22,17 +22,33 @@
  *
  ******************************************************************************/
 
-package io.questdb.jar.jni;
+package io.questdb.maven.rust;
 
-/**
- * Exception thrown when a native library cannot be loaded.
- */
-public class LoadException extends RuntimeException {
-    public LoadException(String message) {
-        super(message);
-    }
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 
-    public LoadException(String message, Throwable cause) {
-        super(message, cause);
+@Mojo(name = "test", defaultPhase = LifecyclePhase.TEST, threadSafe = true)
+public class CargoTestMojo extends CargoMojoBase {
+    /**
+     * Skips running tests when building with `mvn package -DskipTests=true`.
+     */
+    @Parameter(property = "skipTests", defaultValue = "false")
+    private boolean skipTests;
+
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        if (skipTests) {
+            getLog().info("Skipping tests");
+            return;
+        }
+        final Crate crate = new Crate(
+                getCrateRoot(),
+                getTargetRootDir(),
+                getCommonCrateParams());
+        crate.setLog(getLog());
+        crate.test();
     }
 }

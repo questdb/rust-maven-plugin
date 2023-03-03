@@ -24,15 +24,12 @@
 
 package io.questdb.jar.jni;
 
-/**
- * Exception thrown when a native library cannot be loaded.
- */
-public class LoadException extends RuntimeException {
-    public LoadException(String message) {
-        super(message);
-    }
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-    public LoadException(String message, Throwable cause) {
-        super(message, cause);
+public interface StreamTransfer {
+    static void copyToStream(InputStream is, OutputStream out) throws IOException {
+        is.transferTo(out);
     }
 }

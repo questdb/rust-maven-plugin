@@ -22,17 +22,7 @@
  *
  ******************************************************************************/
 
-package io.questdb.jar.jni;
-
-/**
- * Exception thrown when a native library cannot be loaded.
- */
-public class LoadException extends RuntimeException {
-    public LoadException(String message) {
-        super(message);
-    }
-
-    public LoadException(String message, Throwable cause) {
-        super(message, cause);
-    }
+open module io.questdb.jar.jni {
+    requires java.base;
+    exports io.questdb.jar.jni;
 }
