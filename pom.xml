@@ -49,6 +49,13 @@
         </developer>
     </developers>
 
+    <scm>
+        <url>https://github.com/questdb/rust-maven-plugin</url>
+        <connection>scm:git:https://github.com/questdb/rust-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:questdb/rust-maven-plugin.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
     <build>
         <pluginManagement>
             <plugins>
