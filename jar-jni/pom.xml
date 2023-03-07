@@ -32,13 +32,6 @@
     <name>JAR JNI Loader</name>
     <description>Load JNI dependencies embedded within a JAR file.</description>
     <url>https://github.com/questdb/rust-maven-plugin</url>
-    <licenses>
-        <license>
-            <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
     <developers>
         <developer>
             <name>QuestDB Team</name>
