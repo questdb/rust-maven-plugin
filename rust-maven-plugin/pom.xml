@@ -54,6 +54,7 @@
         <developerConnection>scm:git:git@github.com:questdb/rust-maven-plugin.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
+
     <distributionManagement>
         <snapshotRepository>
             <id>central</id>
