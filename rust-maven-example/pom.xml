@@ -50,7 +50,7 @@
     <dependencies>
         <dependency>
             <groupId>org.questdb</groupId>
-            <artifactId>jar-jni</artifactId>
+            <artifactId>jarjni</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
