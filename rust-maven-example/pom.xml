@@ -27,7 +27,7 @@
 
     <groupId>io.questdb</groupId>
     <artifactId>rust-maven-example</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Rust Maven Plugin Usage Example</name>
