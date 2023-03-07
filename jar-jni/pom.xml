@@ -26,7 +26,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.questdb</groupId>
     <artifactId>jar-jni</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>JAR JNI Loader</name>
