@@ -49,7 +49,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.questdb</groupId>
+            <groupId>org.questdb</groupId>
             <artifactId>jar-jni</artifactId>
             <version>${project.version}</version>
         </dependency>
