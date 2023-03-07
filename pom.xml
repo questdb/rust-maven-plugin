@@ -26,7 +26,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <version>1.0.7-SNAPSHOT</version>
-    <groupId>io.questdb</groupId>
+    <groupId>org.questdb</groupId>
     <artifactId>rust-maven</artifactId>
     <packaging>pom</packaging>
     <name>Rust Maven</name>
