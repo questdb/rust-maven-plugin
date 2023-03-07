@@ -27,7 +27,7 @@
 
     <groupId>io.questdb</groupId>
     <artifactId>rust-maven-example</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Rust Maven Plugin Usage Example</name>
@@ -44,7 +44,7 @@
         <dependency>
             <groupId>io.questdb</groupId>
             <artifactId>jar-jni</artifactId>
-            <version>1.0.0</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
 			<groupId>junit</groupId>
@@ -65,7 +65,7 @@
             <plugin>
                 <groupId>io.questdb</groupId>
                 <artifactId>rust-maven-plugin</artifactId>
-                <version>1.0.0</version>
+                <version>${project.version}</version>
                 <executions>
                     <execution>
                         <id>str-reverse</id>
