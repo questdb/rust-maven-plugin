@@ -58,14 +58,14 @@
     </properties>
 
     <distributionManagement>
+        <repository>
+            <id>oss.sonatype.org</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
         <snapshotRepository>
-            <id>central</id>
+            <id>oss.sonatype.org</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
-        <repository>
-            <id>central</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-        </repository>
     </distributionManagement>
 
     <profiles>
