@@ -191,13 +191,13 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-jar-plugin</artifactId>
                         <version>3.3.0</version>
-                        <configuration>
-                            <archive>
-                                <manifestEntries>
-                                    <Multi-Release>true</Multi-Release>
-                                </manifestEntries>
-                            </archive>
-                        </configuration>
+<!--                        <configuration>-->
+<!--                            <archive>-->
+<!--                                <manifestEntries>-->
+<!--                                    <Multi-Release>true</Multi-Release>-->
+<!--                                </manifestEntries>-->
+<!--                            </archive>-->
+<!--                        </configuration>-->
                     </plugin>
                 </plugins>
             </build>
