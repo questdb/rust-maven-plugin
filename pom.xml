@@ -37,4 +37,33 @@
         <module>rust-maven-example</module>
         <module>jar-jni</module>
     </modules>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+    </properties>
+
+    <developers>
+        <developer>
+            <name>QuestDB Team</name>
+            <email>hello@questdb.io</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/questdb/rust-maven-plugin</url>
+        <connection>scm:git:https://github.com/questdb/rust-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:questdb/rust-maven-plugin.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>central</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>central</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+    </distributionManagement>
 </project>
