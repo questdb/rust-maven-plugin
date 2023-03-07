@@ -55,6 +55,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java9.sourceDirectory>${project.basedir}/src/main/java9</java9.sourceDirectory>
         <java9.build.outputDirectory>${project.build.directory}/classes-java9</java9.build.outputDirectory>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
 
     <distributionManagement>
