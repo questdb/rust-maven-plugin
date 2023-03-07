@@ -25,13 +25,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.questdb</groupId>
-    <artifactId>jarjni</artifactId>
+    <artifactId>jar-jni</artifactId>
     <version>1.0.16-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>JAR JNI Loader</name>
     <description>Load JNI dependencies embedded within a JAR file.</description>
     <url>https://github.com/questdb/rust-maven-plugin</url>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
     <developers>
         <developer>
             <name>QuestDB Team</name>
@@ -40,6 +47,12 @@
             <organizationUrl>https://questdb.io/</organizationUrl>
         </developer>
     </developers>
+    <scm>
+        <url>https://github.com/questdb/rust-maven-plugin</url>
+        <connection>scm:git:https://github.com/questdb/rust-maven-plugin.git</connection>
+        <developerConnection>scm:git:https://github.com/questdb/rust-maven-plugin.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -191,13 +204,13 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-jar-plugin</artifactId>
                         <version>3.3.0</version>
-<!--                        <configuration>-->
-<!--                            <archive>-->
-<!--                                <manifestEntries>-->
-<!--                                    <Multi-Release>true</Multi-Release>-->
-<!--                                </manifestEntries>-->
-<!--                            </archive>-->
-<!--                        </configuration>-->
+                        <configuration>
+                            <archive>
+                                <manifestEntries>
+                                    <Multi-Release>true</Multi-Release>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

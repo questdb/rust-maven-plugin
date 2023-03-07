@@ -147,7 +147,7 @@
     <dependencies>
         <dependency>
             <groupId>org.questdb</groupId>
-            <artifactId>jarjni</artifactId>
+            <artifactId>jar-jni</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
