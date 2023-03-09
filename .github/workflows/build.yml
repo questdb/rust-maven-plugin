@@ -42,5 +42,5 @@ jobs:
         run: mvn test
 
       - name: Running the example
-        run: java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar${{ matrix.path-sep }}./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.example.rust.Main
+        run: java -cp "./rust-maven-example/target/*${{ matrix.path-sep }}./jar-jni/target/*" io.questdb.example.rust.Main
 
