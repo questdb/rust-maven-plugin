@@ -398,7 +398,7 @@ public class Crate {
 
         if (params.features != null && params.features.length > 0) {
             args.add("--features");
-            args.add(String.join(",", params.features));
+            args.add(String.join(",", params.cleanedFeatures()));
         }
 
         if (params.tests) {
@@ -497,5 +497,21 @@ public class Crate {
         public String[] extraArgs;
         public Path copyToDir;
         public boolean copyWithPlatformDir;
+
+        /**
+         * Returns the features array with empty and null elements removed.
+         */
+        public String[] cleanedFeatures() {
+            List<String> cleanedFeatures = new ArrayList<>();
+            for (String feature : features) {
+                if (feature != null) {
+                    feature = feature.trim();
+                    if (!feature.isEmpty()) {
+                        cleanedFeatures.add(feature);
+                    }
+                }
+            }
+            return cleanedFeatures.toArray(new String[0]);
+        }
     }
 }

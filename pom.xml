@@ -22,12 +22,11 @@
   ~
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <version>1.0.0-SNAPSHOT</version>
-    <groupId>io.questdb</groupId>
+    <groupId>org.questdb</groupId>
     <artifactId>rust-maven</artifactId>
     <packaging>pom</packaging>
     <name>Rust Maven</name>
@@ -37,4 +36,40 @@
         <module>rust-maven-example</module>
         <module>jar-jni</module>
     </modules>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+    </properties>
+
+    <developers>
+        <developer>
+            <name>QuestDB Team</name>
+            <email>hello@questdb.io</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/questdb/rust-maven-plugin</url>
+        <connection>scm:git:https://github.com/questdb/rust-maven-plugin.git</connection>
+        <developerConnection>scm:git:https://github.com/questdb/rust-maven-plugin.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.5.3</version>
+                    <configuration>
+                        <tagNameFormat>@{project.version}</tagNameFormat>
+                        <arguments>-Dmaven.test.skipTests=true -Dmaven.test.skip=true</arguments>
+                        <releaseProfiles>maven-central-release</releaseProfiles>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>

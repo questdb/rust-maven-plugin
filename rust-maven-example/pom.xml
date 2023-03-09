@@ -22,11 +22,10 @@
   ~
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.questdb</groupId>
+    <groupId>org.questdb</groupId>
     <artifactId>rust-maven-example</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -39,13 +38,22 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
+
+    <scm>
+        <url>https://github.com/questdb/rust-maven-plugin</url>
+        <connection>scm:git:https://github.com/questdb/rust-maven-plugin.git</connection>
+        <developerConnection>scm:git:https://github.com/questdb/rust-maven-plugin.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
 
     <dependencies>
         <dependency>
-            <groupId>io.questdb</groupId>
+            <groupId>org.questdb</groupId>
             <artifactId>jar-jni</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
 			<groupId>junit</groupId>
@@ -64,9 +72,9 @@
                 Placing it there will have Maven automatically bundle the compiled code in the Jar.
             -->
             <plugin>
-                <groupId>io.questdb</groupId>
+                <groupId>org.questdb</groupId>
                 <artifactId>rust-maven-plugin</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <executions>
                     <execution>
                         <id>str-reverse</id>
