@@ -3,11 +3,8 @@
 import argparse
 import pathlib
 import difflib
-
-
-# Running this script will also update the version number in this file.
-# Do not edit manually.
-CURRENT_VERSION = '1.0.0-SNAPSHOT'
+import xml.etree.ElementTree as ET
+import re
 
 
 # Table of file names to strings to match and replace.
@@ -15,26 +12,14 @@ CURRENT_VERSION = '1.0.0-SNAPSHOT'
 # during both matching and replacing.
 # All paths are relative to the root of the repository.
 MATCHERS = {
-    'change_version.py':
-        ["CURRENT_VERSION = '$$VERSION$$'"],
-    'pom.xml':
-        ["<version>$$VERSION$$</version>"],
     'README.md':
         ["rust-maven-plugin:$$VERSION$$:build",
-         "<version>$$VERSION$$</version>",
-         "-$$VERSION$$.jar"],
-    'jar-jni/pom.xml':
-        ["<version>$$VERSION$$</version>"],
-    'rust-maven-plugin/pom.xml':
-        ["<version>$$VERSION$$</version>"],
-    'rust-maven-example/pom.xml':
-        ["<version>$$VERSION$$</version>"],
+         "<version>$$VERSION$$</version>"],
 }
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('version', help='Version number to change to')
     parser.add_argument('-p', '--preview', action='store_true',
                         help='Preview changes without making them')
     parser.add_argument('-n', '--num-lines', type=int, default=3,
@@ -44,8 +29,26 @@ def parse_args():
     return parser.parse_args()
 
 
+def get_old_vers():
+    with open('README.md', 'r', encoding='utf-8') as f:
+        contents = f.read()
+    pat = re.compile(r'.*rust-maven-plugin:(.*?):build.*')
+    for line in contents.splitlines():
+        match = pat.search(line)
+        if match:
+            return match.group(1)
+    raise RuntimeError('Could not find old version in README.md')
+
+
+def get_new_vers():
+    tree = ET.parse('rust-maven-plugin/pom.xml')
+    return tree.getroot().find('./{*}version').text
+
+
 def main():
     args = parse_args()
+    old_vers = get_old_vers()
+    new_vers = get_new_vers()
     old_contents = {}
     new_contents = {}
     for filename, matchers in MATCHERS.items():
@@ -55,8 +58,8 @@ def main():
         old_contents[file_path] = contents
 
         for matcher in matchers:
-            old_version_text = matcher.replace('$$VERSION$$', CURRENT_VERSION)
-            new_version_text = matcher.replace('$$VERSION$$', args.version)
+            old_version_text = matcher.replace('$$VERSION$$', old_vers)
+            new_version_text = matcher.replace('$$VERSION$$', new_vers)
             if old_version_text not in contents:
                 raise RuntimeError(
                     'Could not find "{}" in file "{}"'.format(

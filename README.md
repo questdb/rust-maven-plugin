@@ -35,8 +35,8 @@ $ mvn clean package
 For your convenience, we've also made `jar-jni` available:
 An optional Java library to load JNI dynamic libraries from JARs.
 
-Both the plugin and the library support a directory naming convention structure to support compiling
-for a multitude of platforms.
+Both the plugin and the library support a common directory naming convention
+to organize and find compiled artifacts for a multitude of platforms.
 
 # Complete Example
 See the [`rust-maven-example`](rust-maven-example/) directory for a working
@@ -58,7 +58,7 @@ Edit your `pom.xml` to add the plugin:
     <build>
         <plugins>
             <plugin>
-                <groupId>io.questdb</groupId>
+                <groupId>org.questdb</groupId>
                 <artifactId>rust-maven-plugin</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
                 <executions>
@@ -142,6 +142,9 @@ Accepted values are:
 The plugin can be configured to build in release mode by setting
 `<release>true</release>` in the `<configuration>` block.
 
+Building `--release` will cut down binary size considerably and should be taken
+into consideration when shipping binaries in `.jar` files.
+
 ## Specifying Crate Features
 
 The equivalent of `cargo build --features feat1,feat2,feat3` is
@@ -156,6 +159,30 @@ The equivalent of `cargo build --features feat1,feat2,feat3` is
 
 You can also specify `--all-features` via `<all-features>true</all-features>` and `--no-default-features`
 via `<no-default-features>true</no-default-features>`.
+
+Note that you can drive features with maven profiles by introducing variables.
+
+```xml
+<!-- in the plugin configuration -->
+<features>
+    <feature>$rustFeature1</feature>
+    <feature>$rustFeature2</feature>
+</features>
+```
+
+```xml
+<!-- in the profiles section -->
+<profile>
+    <id>feat-ssl</id>
+    <properties>
+        <rustFeature1>ssl</rustFeature1>
+        <rustFeature1>use-rustls</rustFeature1>
+    </properties>
+</profile>
+```
+
+Then building with `mvn package -P feat-ssl` will call
+`cargo build --features ssl,use-rustls`.
 
 ## Additional cargo arguments
 
@@ -190,8 +217,8 @@ directory, via `cargo build --target-dir ...`.
 # De-duplicating build directories when invoking `cargo build` without Maven
 
 If you (or your IDE) end up invoking `cargo build` on your Rust crate without
-the plugin, you'll notice this creates a duplicate `target` dir that will not
-be cleaned at the next `mvn clean`.
+the plugin, you'll notice this creates a duplicate `target` dir, inside the
+crate's directory, that will not be cleaned at the next `mvn clean`.
 
 To avoid this duplicate `target` directory problem, consider adding
 `.cargo/config.toml` files configured to match the `--target-dir` argument
@@ -202,9 +229,10 @@ from the `str-reverse` crate in the example.
 
 # Bundling binaries in the `.jar` file
 
-The `<copyTo>` configuration allows copying the binaries anywhere. The example
-however choses to copy them to `${project.build.directory}/classes/...`.
-Anything placed there gets bundled in the JAR file.
+The `<copyTo>` configuration (as shown in the example) allows copying the
+binaries any path. The example however choses to copy them to
+`${project.build.directory}/classes/...`. Anything placed there gets bundled
+into the JAR file.
 The `classes` directory sits within the `target` directory and outside of the
 source tree.
 
@@ -238,13 +266,13 @@ code when you need to.
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>io.questdb</groupId>
+                        <groupId>org.questdb</groupId>
                         <artifactId>rust-maven-plugin</artifactId>
                         <version>1.0.0-SNAPSHOT</version>
 ...
 ```
 
-You can then enable the profile in Maven via `mvn clean package -Prust ...`.
+You can then enable the profile in Maven via `mvn clean package -P rust ...`.
 
 ## Supporting Multiple Platforms
 
@@ -273,7 +301,7 @@ The `jar-jni` library is configured as so:
     ...
     <dependencies>
       <dependency>
-          <groupId>io.questdb</groupId>
+          <groupId>org.questdb</groupId>
           <artifactId>jar-jni</artifactId>
           <version>1.0.0-SNAPSHOT</version>
       </dependency>
@@ -319,29 +347,5 @@ JarJniLoader.loadLib(
 
 If you want to talk to us, we're on [Slack](https://slack.questdb.io/).
 
-## Building
-
-To build the project and run the example:
-
-```shell
-git clone https://github.com/questdb/rust-maven-plugin.git
-cd rust-maven-plugin
-mvn clean package
-java -cp "./rust-maven-example/target/rust-maven-example-1.0.0-SNAPSHOT.jar:./jar-jni/target/jar-jni-1.0.0-SNAPSHOT.jar" io.questdb.example.rust.Main
-```
-
-## Testing Against Another Project
-
-For test your changes against another project you need to install the `jar-jni` and `rust-maven-plugin` artifacts locally in your Maven cache:
-
-```shell
-cd jar-jni
-mnv clean install
-cd ../rust-maven-plugin
-mvn clean install
-```
-
-## Thanks to
-
-* OktaDev for covering custom Maven plugins on YouTube https://www.youtube.com/watch?v=wHX4j0z-sUU - It's a great introduction to Maven plugins.
-* The CMake maven plugin project https://github.com/cmake-maven-project/cmake-maven-project for inspiration.
+Also read the [Developer's Notes](DEV_NOTES.md) with instructions on building
+and running from source.
