@@ -3,7 +3,6 @@
 import argparse
 import pathlib
 import difflib
-import xml.etree.ElementTree as ET
 import re
 
 
@@ -20,6 +19,7 @@ MATCHERS = {
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('version', help='New version number')
     parser.add_argument('-p', '--preview', action='store_true',
                         help='Preview changes without making them')
     parser.add_argument('-n', '--num-lines', type=int, default=3,
@@ -40,15 +40,10 @@ def get_old_vers():
     raise RuntimeError('Could not find old version in README.md')
 
 
-def get_new_vers():
-    tree = ET.parse('rust-maven-plugin/pom.xml')
-    return tree.getroot().find('./{*}version').text
-
-
 def main():
     args = parse_args()
     old_vers = get_old_vers()
-    new_vers = get_new_vers()
+    new_vers = args.version
     old_contents = {}
     new_contents = {}
     for filename, matchers in MATCHERS.items():
