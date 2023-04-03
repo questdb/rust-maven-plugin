@@ -96,10 +96,12 @@ public class CrateTest {
         assertTrue(Files.exists(expectedBinPath));
     }
 
+    @Test
     public void testDefaultBinDebugNoCopyTo() throws Exception {
         doTestDefaultBin(false, false, false);
     }
 
+    @Test
     public void testDefaultBinReleaseNoCopyTo() throws Exception {
         // Last arg to `true` should be ignored.
         doTestDefaultBin(true, false, true);
@@ -251,12 +253,12 @@ public class CrateTest {
                 "debug");
         mock.writeCargoToml(
                 "[package]\n" +
-                "name = \"test-lib\"\n" +
-                "version = \"0.1.0\"\n" +
-                "edition = \"2021\"\n" +
-                "\n" +
-                "[lib]\n" +
-                "crate_type = [\"cdylib\"]\n");
+                        "name = \"test-lib\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n" +
+                        "\n" +
+                        "[lib]\n" +
+                        "crate_type = [\"cdylib\"]\n");
         mock.touchSrc("lib.rs");
         final Path cdylibPath = mock.touchLib("test-lib");
 

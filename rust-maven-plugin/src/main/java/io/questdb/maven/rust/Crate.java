@@ -188,7 +188,9 @@ public class Crate {
     public boolean hasCdylib() {
         try {
             TomlArray crateTypes = getCrateTypes();
-            if (crateTypes == null) return false;
+            if (crateTypes == null) {
+                return false;
+            }
 
             for (int index = 0; index < crateTypes.size(); index++) {
                 String crateType = crateTypes.getString(index);
