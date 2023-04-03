@@ -244,6 +244,37 @@ public class CrateTest {
     }
 
     @Test
+    public void testCdylibLegacyKeyCrateType() throws Exception {
+        // Setting up mock Rust project directory.
+        final MockCrate mock = new MockCrate(
+                "test-lib-1",
+                "debug");
+        mock.writeCargoToml(
+                "[package]\n" +
+                "name = \"test-lib\"\n" +
+                "version = \"0.1.0\"\n" +
+                "edition = \"2021\"\n" +
+                "\n" +
+                "[lib]\n" +
+                "crate_type = [\"cdylib\"]\n");
+        mock.touchSrc("lib.rs");
+        final Path cdylibPath = mock.touchLib("test-lib");
+
+        // Configuring the build job.
+
+        final Crate crate = new Crate(
+                mock.crateRoot,
+                targetRootDir,
+                new Crate.Params());
+
+        // Checking the expected paths it generates.
+        final List<Path> artifacts = crate.getArtifactPaths();
+
+        assertEquals(1, artifacts.size());
+        assertEquals(cdylibPath, artifacts.get(0));
+    }
+
+    @Test
     public void testDefaultBinAndCdylib() throws Exception {
         // Setting up mock Rust project directory.
         final MockCrate mock = new MockCrate(

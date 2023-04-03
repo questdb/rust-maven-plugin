@@ -187,10 +187,8 @@ public class Crate {
 
     public boolean hasCdylib() {
         try {
-            TomlArray crateTypes = cargoToml.getArray("lib.crate-type");
-            if (crateTypes == null) {
-                return false;
-            }
+            TomlArray crateTypes = getCrateTypes();
+            if (crateTypes == null) return false;
 
             for (int index = 0; index < crateTypes.size(); index++) {
                 String crateType = crateTypes.getString(index);
@@ -203,6 +201,15 @@ public class Crate {
         } catch (TomlInvalidTypeException e) {
             return false;
         }
+    }
+
+    private TomlArray getCrateTypes() {
+        TomlArray crateTypes = cargoToml.getArray("lib.crate-type");
+        if (crateTypes == null) {
+            String crateTypeLegacyKey = "lib.crate_type";
+            return cargoToml.getArray(crateTypeLegacyKey);
+        }
+        return crateTypes;
     }
 
     private String getCdylibName() throws MojoExecutionException {
