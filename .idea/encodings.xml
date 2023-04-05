@@ -3,8 +3,10 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/jar-jni/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/jar-jni/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/rust-maven-example/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/rust-maven-example/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/rust-maven-jna-example/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/rust-maven-jna-example/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/rust-maven-jni-example/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/rust-maven-jni-example/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/rust-maven-plugin/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/rust-maven-plugin/src/main/resources" charset="UTF-8" />
   </component>

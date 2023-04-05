@@ -48,7 +48,7 @@ public interface JarJniLoader {
         if (platformDir != null) {
             pathInJar += platformDir + "/";
         }
-        pathInJar += OsInfo.LIB_PREFIX + name + OsInfo.LIB_SUFFIX;
+        pathInJar += Platform.LIB_PREFIX + name + Platform.LIB_SUFFIX;
         final InputStream is = cls.getResourceAsStream(pathInJar);
         if (is == null) {
             throw new LoadException("Internal error: cannot find " + pathInJar + ", broken package?");
@@ -98,6 +98,6 @@ public interface JarJniLoader {
      * @param name          The name of the library, sans "lib" prefix and ".so|.dll|.dylib" suffix.
      */
     static <T> void loadLib(Class<T> cls, String jarPathPrefix, String name) {
-        loadLib(cls, jarPathPrefix, name, OsInfo.PLATFORM);
+        loadLib(cls, jarPathPrefix, name, Platform.RESOURCE_PREFIX);
     }
 }
