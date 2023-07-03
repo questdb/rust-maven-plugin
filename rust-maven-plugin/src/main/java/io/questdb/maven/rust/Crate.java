@@ -403,9 +403,10 @@ public class Crate {
             args.add("--no-default-features");
         }
 
-        if (params.features != null && params.features.length > 0) {
+        final String[] cleanedFeatures = params.cleanedFeatures();
+        if (cleanedFeatures.length > 0) {
             args.add("--features");
-            args.add(String.join(",", params.cleanedFeatures()));
+            args.add(String.join(",", cleanedFeatures));
         }
 
         if (params.tests) {
@@ -509,6 +510,9 @@ public class Crate {
          * Returns the features array with empty and null elements removed.
          */
         public String[] cleanedFeatures() {
+            if ((features == null) || (features.length == 0)) {
+                return new String[0];
+            }
             List<String> cleanedFeatures = new ArrayList<>();
             for (String feature : features) {
                 if (feature != null) {
