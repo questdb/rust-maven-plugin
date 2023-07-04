@@ -7,11 +7,11 @@ Build Rust Cargo crates within a Java Maven Project.
 ```shell
 $ mvn clean package
 ...
-[INFO] --- rust-maven-plugin:1.0.1:build (str-reverse) @ rust-maven-example ---
-[INFO] Working directory: /home/adam/questdb/repos/rust-maven-plugin/rust-maven-example/src/main/rust/str-reverse
+[INFO] --- rust-maven-plugin:1.1.0:build (str-reverse) @ rust-maven-jni-example ---
+[INFO] Working directory: /home/adam/questdb/repos/rust-maven-plugin/rust-maven-jni-example/src/main/rust/str-reverse
 [INFO] Environment variables:
 [INFO]   REVERSED_STR_PREFIX='Great Scott, A reversed string!'
-[INFO] Running: cargo build --target-dir /home/adam/questdb/repos/rust-maven-plugin/rust-maven-example/target/rust-maven-plugin/str-reverse --release
+[INFO] Running: cargo build --target-dir /home/adam/questdb/repos/rust-maven-plugin/rust-maven-jni-example/target/rust-maven-plugin/str-reverse --release
 [INFO]    Compiling proc-macro2 v1.0.49
 [INFO]    Compiling quote v1.0.23
 [INFO]    Compiling unicode-ident v1.0.6
@@ -26,7 +26,8 @@ $ mvn clean package
   [Rust JNI libs](https://crates.io/crates/jni) inside a Java
   [Maven](https://maven.apache.org/) project.
 * Additionally, the plugin can also compile binaries.
-* The plugin can copy complied binaries to a custom location and so they can be bundled inside of `.jar` files.
+* The plugin can copy complied binaries to a custom location, so they can be bundled inside of `.jar` files.
+  * We use the same naming scheme as JNA to support loading binaries from JARs, without having JNA as a dependency.
 * Support for invoking `cargo test` during `mvn test`.
 * Points to https://www.rust-lang.org/tools/install if `cargo` isn't found.
 
@@ -38,14 +39,27 @@ An optional Java library to load JNI dynamic libraries from JARs.
 Both the plugin and the library support a common directory naming convention
 to organize and find compiled artifacts for a multitude of platforms.
 
-# Complete Example
-See the [`rust-maven-example`](rust-maven-example/) directory for a working
-example.
+# Complete Examples
 
-It also uses the `jar-jni` library to load the Rust binaries from the compiled
+When integrating Rust, we recommend using JNI due to better performance and features, but JNA is also supported.
+
+## Rust JNI Example
+
+See the [`rust-maven-jni-example`](rust-maven-jni-example/) directory for a working
+example using Java JNI via the Rust [jni](https://crates.io/crates/jni) crate. 
+
+Thi example also uses the `jar-jni` library to load the Rust binaries from the compiled
 JAR file.
 
-# Basic Configuration
+## Rust JNA Example
+
+See the [`rust-maven-jna-example`](rust-maven-jna-example/) directory for calling Rust from
+Java via JNA.
+
+Note that neither `rust-maven-plugin` nor `jar-jni` depend on JNA: Instead both the plugin and the library
+support a common directory naming convention to organize and find compiled artifacts for a multitude of platforms.
+
+# Basic Plugin Configuration
 
 Edit your `pom.xml` to add the plugin:
 
@@ -60,7 +74,7 @@ Edit your `pom.xml` to add the plugin:
             <plugin>
                 <groupId>org.questdb</groupId>
                 <artifactId>rust-maven-plugin</artifactId>
-                <version>1.0.1</version>
+                <version>1.1.0</version>
                 <executions>
                     <execution>
                         <id>rust-build-id</id>
@@ -69,7 +83,7 @@ Edit your `pom.xml` to add the plugin:
                         </goals>
                         <configuration>
                             <path>src/main/rust/your-rust-crate</path>
-                            <copyTo>${project.build.directory}/classes/io/questdb/example/rust/libs</copyTo>
+                            <copyTo>${project.build.directory}/classes/io/questdb/jni/example/rust/libs</copyTo>
                             <copyWithPlatformDir>true</copyWithPlatformDir>
                         </configuration>
                     </execution>
@@ -224,7 +238,7 @@ To avoid this duplicate `target` directory problem, consider adding
 `.cargo/config.toml` files configured to match the `--target-dir` argument
 passed by this plugin.
 
-See [.cargo/config.toml](rust-maven-example/src/main/rust/str-reverse/.cargo/config.toml)
+See [.cargo/config.toml](rust-maven-jni-example/src/main/rust/str-reverse/.cargo/config.toml)
 from the `str-reverse` crate in the example.
 
 # Bundling binaries in the `.jar` file
@@ -249,7 +263,7 @@ configure to copy binaries to the [`resources`](https://stackoverflow.com/questi
 instead:
 
 ```xml
-<copyTo>src/main/resources/io/questdb/example/rust/libs</copyTo>
+<copyTo>src/main/resources/io/questdb/jni/example/rust/libs</copyTo>
 <copyWithPlatformDir>true</copyWithPlatformDir>
 ```
 
@@ -268,7 +282,7 @@ code when you need to.
                     <plugin>
                         <groupId>org.questdb</groupId>
                         <artifactId>rust-maven-plugin</artifactId>
-                        <version>1.0.1</version>
+                        <version>1.1.0</version>
 ...
 ```
 
@@ -282,7 +296,7 @@ above) will further nest the binaries in a directory named after the platform.
 ```
 target
     classes
-        io/questdb/example/rust/libs/
+        io/questdb/jni/example/rust/libs/
             linux-amd64/libstr_reverse.so
             mac_os_x-aarch64/libstr_reverse.dylib
             windows-amd64/str_reverse.dll
@@ -303,7 +317,7 @@ The `jar-jni` library is configured as so:
       <dependency>
           <groupId>org.questdb</groupId>
           <artifactId>jar-jni</artifactId>
-          <version>1.0.1</version>
+          <version>1.1.0</version>
       </dependency>
     </dependencies>
     ...
@@ -322,7 +336,7 @@ JarJniLoader.loadLib(
     Main.class,
 
     // A platform-specific path is automatically suffixed to path below.
-    "/io/questdb/example/rust/libs",
+    "/io/questdb/jni/example/rust/libs",
 
     // The "lib" prefix and ".so|.dynlib|.dll" suffix are added automatically as needed.
     "str_reverse");
@@ -333,7 +347,7 @@ If instead you compiled with `<copyWithPlatformDir>false</copyWithPlatformDir>`,
 ```java
 JarJniLoader.loadLib(
     Main.class,
-    "/io/questdb/example/rust/libs",
+    "/io/questdb/jni/example/rust/libs",
     "str_reverse",
     null);
 ```

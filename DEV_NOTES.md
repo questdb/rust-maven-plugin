@@ -8,7 +8,7 @@ To build the project and run the example:
 git clone https://github.com/questdb/rust-maven-plugin.git
 cd rust-maven-plugin
 mvn clean package
-java -cp "./rust-maven-example/target/*:./jar-jni/target/*" io.questdb.example.rust.Main
+java -cp "./rust-maven-jni-example/target/*:./jar-jni/target/*" io.questdb.jni.example.rust.Main
 ```
 
 _(Substituting `:` for `;` if developing on Windows)_

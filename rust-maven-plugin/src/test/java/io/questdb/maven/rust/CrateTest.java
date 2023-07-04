@@ -24,7 +24,7 @@
 
 package io.questdb.maven.rust;
 
-import io.questdb.jar.jni.OsInfo;
+import io.questdb.jar.jni.Platform;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.After;
 import org.junit.Before;
@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -113,7 +114,7 @@ public class CrateTest {
         Path expectedBinPath = params.copyToDir;
         if (copyWithPlatformDir) {
             expectedBinPath = expectedBinPath.resolve(
-                    OsInfo.PLATFORM);
+                    Platform.RESOURCE_PREFIX);
         }
         expectedBinPath = expectedBinPath.resolve(mockBinPath.getFileName());
 
@@ -193,7 +194,7 @@ public class CrateTest {
 
         Path expectedLibPath = params.copyToDir;
         if (copyWithPlatformDir) {
-            expectedLibPath = expectedLibPath.resolve(OsInfo.PLATFORM);
+            expectedLibPath = expectedLibPath.resolve(Platform.RESOURCE_PREFIX);
         }
         expectedLibPath = expectedLibPath.resolve(cdylibPath.getFileName());
 
@@ -263,7 +264,7 @@ public class CrateTest {
         crate.copyArtifacts();
 
         Path expectedLibPath = params.copyToDir
-                .resolve(OsInfo.PLATFORM)
+                .resolve(Platform.RESOURCE_PREFIX)
                 .resolve(cdylibPath.getFileName());
 
         assertTrue(Files.exists(expectedLibPath));
@@ -483,6 +484,70 @@ public class CrateTest {
         assertTrue(Files.exists(expectedExtraBinPath));
     }
 
+    public static Crate.Params defaultParams() {
+        final Crate.Params params = new Crate.Params();
+        params.release = false;
+        params.features = new String[0];
+        params.cargoPath = "cargo";
+        params.environmentVariables = new HashMap<>();
+        return params;
+    }
+
+    @Test
+    public void testTwoFeatures() throws Exception {
+        final String crateName = "two-features";
+        final MockCrate mock = new MockCrate(crateName, "release");
+        mock.writeCargoToml(
+                "[package]\n" +
+                        "name = \"" + crateName + "\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n" +
+                        "\n" +
+                        "[features]\n" +
+                        "feature1 = []\n" +
+                        "feature2 = []\n");
+        final Path libSrc = mock.touchSrc("lib.rs");
+        writeFile(libSrc, "pub fn foo() -> i32 { 42 }");
+
+        final Crate.Params params = defaultParams();
+        params.features = new String[]{"feature1", "feature2"};
+
+        final Crate crate = new Crate(
+                mock.crateRoot,
+                targetRootDir,
+                params);
+        crate.setLog(TestLog.INSTANCE);
+        crate.build();
+    }
+
+    @Test
+    public void testEmptyFeatures() throws Exception {
+        final String crateName = "two-features";
+        final MockCrate mock = new MockCrate(crateName, "release");
+        mock.writeCargoToml(
+                "[package]\n" +
+                        "name = \"" + crateName + "\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n" +
+                        "\n" +
+                        "[features]\n" +
+                        "feature1 = []\n" +
+                        "feature2 = []\n");
+        final Path libSrc = mock.touchSrc("lib.rs");
+        writeFile(libSrc, "pub fn foo() -> i32 { 42 }");
+
+        final Crate.Params params = defaultParams();
+        params.features = new String[]{"", ""};
+        params.release = true;
+
+        final Crate crate = new Crate(
+                mock.crateRoot,
+                targetRootDir,
+                params);
+        crate.setLog(TestLog.INSTANCE);
+        crate.build();
+    }
+
     @Test
     public void testBadCargoToml() throws Exception {
         // Setting up mock Rust project directory.
@@ -505,6 +570,13 @@ public class CrateTest {
                 () -> new Crate(mock.crateRoot, targetRootDir, params));
     }
 
+    private static Path writeFile(Path dest, String contents) throws IOException {
+        try (PrintWriter w = new PrintWriter(dest.toFile(), "UTF-8")) {
+            w.write(contents);
+        }
+        return dest;
+    }
+
     class MockCrate {
         private final String name;
         private final String profile;
@@ -518,9 +590,7 @@ public class CrateTest {
 
         public void writeCargoToml(String contents) throws IOException {
             Path cargoToml = crateRoot.resolve("Cargo.toml");
-            try (PrintWriter w = new PrintWriter(cargoToml.toFile(), "UTF-8")) {
-                w.write(contents);
-            }
+            writeFile(cargoToml, contents);
         }
 
         public Path touchBin(String name) throws IOException {
@@ -535,7 +605,7 @@ public class CrateTest {
             return mockBinPath;
         }
 
-        public void touchSrc(String... pathComponents) throws IOException {
+        public Path touchSrc(String... pathComponents) throws IOException {
             Path srcPath = crateRoot.resolve("src");
             for (String pathComponent : pathComponents) {
                 srcPath = srcPath.resolve(pathComponent);
@@ -544,6 +614,7 @@ public class CrateTest {
                 Files.createDirectories(srcPath.getParent());
             }
             Files.createFile(srcPath);
+            return srcPath;
         }
 
         public Path touchLib(String name) throws IOException {

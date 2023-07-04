@@ -24,7 +24,8 @@
 
 package io.questdb.maven.rust;
 
-import io.questdb.jar.jni.OsInfo;
+import io.questdb.jar.jni.Platform;
+import io.questdb.jar.jni.PlatformConventions;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -92,13 +93,13 @@ public class Crate {
     }
 
     public static String pinLibName(String name) {
-        return OsInfo.LIB_PREFIX +
+        return PlatformConventions.LIB_PREFIX +
                 name.replace('-', '_') +
-                OsInfo.LIB_SUFFIX;
+                PlatformConventions.LIB_SUFFIX;
     }
 
     public static String pinBinName(String name) {
-        return name + OsInfo.EXE_SUFFIX;
+        return name + PlatformConventions.EXE_SUFFIX;
     }
 
     public static Log nullLog() {
@@ -404,9 +405,10 @@ public class Crate {
             args.add("--no-default-features");
         }
 
-        if (params.features != null && params.features.length > 0) {
+        final String[] cleanedFeatures = params.cleanedFeatures();
+        if (cleanedFeatures.length > 0) {
             args.add("--features");
-            args.add(String.join(",", params.cleanedFeatures()));
+            args.add(String.join(",", cleanedFeatures));
         }
 
         if (params.tests) {
@@ -441,7 +443,7 @@ public class Crate {
         }
 
         if (params.copyWithPlatformDir) {
-            copyToDir = copyToDir.resolve(OsInfo.PLATFORM);
+            copyToDir = copyToDir.resolve(Platform.RESOURCE_PREFIX);
         }
 
         if (!Files.exists(copyToDir, LinkOption.NOFOLLOW_LINKS)) {
@@ -510,6 +512,9 @@ public class Crate {
          * Returns the features array with empty and null elements removed.
          */
         public String[] cleanedFeatures() {
+            if ((features == null) || (features.length == 0)) {
+                return new String[0];
+            }
             List<String> cleanedFeatures = new ArrayList<>();
             for (String feature : features) {
                 if (feature != null) {
