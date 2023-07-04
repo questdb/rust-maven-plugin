@@ -33,7 +33,8 @@
 
     <modules>
         <module>rust-maven-plugin</module>
-        <module>rust-maven-example</module>
+        <module>rust-maven-jni-example</module>
+        <module>rust-maven-jna-example</module>
         <module>jar-jni</module>
     </modules>
 
