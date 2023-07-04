@@ -352,6 +352,60 @@ JarJniLoader.loadLib(
     null);
 ```
 
+# IntelliJ Integration
+
+If you're using IntelliJ, you'll notice that the `rust-maven-plugin` is not invoked
+when you run `Build -> Build Project` or `Build -> Rebuild Project`.
+
+This is because IntelliJ uses its own build system, and does not invoke Maven.
+
+To work around this, you can add a Maven Run Configuration that invokes an Ant task before each build.
+The Ant task then invokes the Maven build step.
+
+Whilst it does sound a little scary to also involve Ant, the actual XML is (for once) very simple.
+
+`<your-proj-root>/rust-intellij.xml`:
+```xml
+<project name="str-reverse-intellij-integration" default="str-reverse-intellij-build" basedir=".">
+    <description>
+        IntelliJ integration to trigger maven steps to build the Rust code via the rust-maven-plugin.
+    </description>
+    <target name="str-reverse-intellij-build">
+        <exec executable="mvn">
+            <arg value="org.questdb:rust-maven-plugin:build@str-reverse"/>
+        </exec>
+    </target>
+</project>
+```
+
+In the XML above, `str-reverse` is the `<id>` of the `<execution>` block in the
+`rust-maven-plugin` configuration in the `pom.xml` file.
+
+You can add multiple executions here, for example to also build release binaries.
+
+Check the file into your source control.
+
+You can then go to the Ant window in IntelliJ (View -> Tool Windows -> Ant) and
+select the configured ant target, right-click, Execute On -> Before Build.
+
+This will generate a new `.idea/ant.xml` file that will be picked up by IntelliJ
+and will trigger the Ant task before each build which you probably want to add to source control.
+
+This file will look something like this:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AntConfiguration">
+    <buildFile url="file://$PROJECT_DIR$/rust-intellij.xml">
+      <executeOn event="beforeCompilation" target="str-reverse-intellij-build" />
+    </buildFile>
+  </component>
+</project>
+```
+
+Here is the IntelliJ reference for this feature: https://www.jetbrains.com/help/idea/configuring-triggers-for-ant-build-target.html#db2565bc
+
 # Contributing & Support
 
 * Test cases, features, docs, tutorials, etc are always welcome.
