@@ -25,7 +25,6 @@
 package io.questdb.maven.rust;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
 
 import java.io.File;
 import java.util.HashMap;
@@ -40,7 +39,7 @@ public final class CargoInstalledChecker {
     private CargoInstalledChecker() {
     }
 
-    public synchronized void check(Log log, String cargoPath)
+    public synchronized void check(String cargoPath)
             throws MojoExecutionException {
         InstalledState cached = cache.getOrDefault(
                 cargoPath, InstalledState.UNKNOWN);

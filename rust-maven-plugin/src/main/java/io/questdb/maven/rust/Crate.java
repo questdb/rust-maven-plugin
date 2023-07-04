@@ -380,7 +380,7 @@ public class Crate {
         try {
             runCommand(cmd);
         } catch (IOException | InterruptedException e) {
-            CargoInstalledChecker.INSTANCE.check(log, cargoPath);
+            CargoInstalledChecker.INSTANCE.check(cargoPath);
             throw new MojoFailureException("Failed to invoke cargo", e);
         }
     }

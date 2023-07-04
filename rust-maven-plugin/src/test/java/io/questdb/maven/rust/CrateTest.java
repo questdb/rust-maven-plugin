@@ -570,11 +570,10 @@ public class CrateTest {
                 () -> new Crate(mock.crateRoot, targetRootDir, params));
     }
 
-    private static Path writeFile(Path dest, String contents) throws IOException {
+    private static void writeFile(Path dest, String contents) throws IOException {
         try (PrintWriter w = new PrintWriter(dest.toFile(), "UTF-8")) {
             w.write(contents);
         }
-        return dest;
     }
 
     class MockCrate {

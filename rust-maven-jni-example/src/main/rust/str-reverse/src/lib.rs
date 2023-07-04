@@ -28,11 +28,11 @@ use jni::sys::jstring;
 
 #[no_mangle]
 pub extern "system" fn Java_io_questdb_jni_example_rust_Main_reversedString(
-        env: JNIEnv,
+        mut env: JNIEnv,
         _class: JClass,
         input: JString) -> jstring {
     let input: String =
-        env.get_string(input).expect("Couldn't get java string!").into();
+        env.get_string(&input).expect("Couldn't get java string!").into();
     let reversed: String = input.chars().rev().collect();
     let reversed = format!("{}: {}", std::env!("REVERSED_STR_PREFIX"), reversed);
     let output = env.new_string(reversed)

@@ -247,7 +247,7 @@ The `<copyTo>` configuration (as shown in the example) allows copying the
 binaries any path. The example however choses to copy them to
 `${project.build.directory}/classes/...`. Anything placed there gets bundled
 into the JAR file.
-The `classes` directory sits within the `target` directory and outside of the
+The `classes` directory sits within the `target` directory, outside the
 source tree.
 
 ## Binaries in source tree
