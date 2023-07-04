@@ -22,18 +22,19 @@
  *
  ******************************************************************************/
 
-package io.questdb.example.rust;
+package io.questdb.jna.example.rust;
 
-import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import com.sun.jna.Library;
+import com.sun.jna.Native;
 
-public class LibTest {
+public interface DoubleNumber extends Library {
+    DoubleNumber INSTANCE = (DoubleNumber) Native.loadLibrary("double_number", DoubleNumber.class);
 
-    @Test
-    public void testLibrary() {
-        assertEquals("Great Scott, A reversed string!: !dlroW olleH", StringReverse.INSTANCE.reversedString(
-                "Hello " +
-                        "World!"));
+    int doubleNumber(int n);
+
+
+    public static void main(String[] args) {
+        System.out.println(DoubleNumber.INSTANCE.doubleNumber(21));
     }
 }

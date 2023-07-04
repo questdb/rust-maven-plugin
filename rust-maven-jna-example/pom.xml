@@ -111,6 +111,8 @@
                             <!--
                                 Copy the generated binaries to the "classes" directory in the build target.
                                 We use this path because it will be bundled automatically into the final jar.
+
+                                This is the path expected by JNA.
                             -->
                             <copyTo>${project.build.directory}/classes</copyTo>
 
@@ -119,13 +121,6 @@
                                 The directory name is computed by the `io.questdb.jar.jni.OsInfo.platform()` method.
                             -->
                             <copyWithPlatformDir>true</copyWithPlatformDir>
-
-                            <!--
-                                Additional environment variables used when calling `cargo build`.
-                            -->
-                            <environmentVariables>
-                                <REVERSED_STR_PREFIX>Great Scott, A reversed string!</REVERSED_STR_PREFIX>
-                            </environmentVariables>
                         </configuration>
                     </execution>
                     <execution>
@@ -156,11 +151,7 @@
                         </goals>
 
                         <configuration>
-                            <!--
-                                Path to the crate.
-                                One you've genenrally built earlier with a
-                                <goal>build</goal> execution.
-                            -->
+                            <!-- Relative path to the crate. -->
                             <path>src/main/rust/str-reverse</path>
 
                             <!-- Specify `true` to test a release (rather than debug) build. -->

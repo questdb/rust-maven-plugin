@@ -22,7 +22,7 @@
  *
  ******************************************************************************/
 
-package io.questdb.example.rust;
+package io.questdb.jni.example.rust;
 
 import io.questdb.jar.jni.JarJniLoader;
 
@@ -32,7 +32,7 @@ public class Main {
                 Main.class,
 
                 // A platform-specific path is automatically suffixed to path below.
-                "/io/questdb/example/rust/libs",
+                "/io/questdb/jni/example/rust/libs",
 
                 // The "lib" prefix and ".so|.dynlib|.dll" suffix are added automatically as needed.
                 "str_reverse");

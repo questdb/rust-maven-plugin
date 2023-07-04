@@ -21,13 +21,18 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-use std::ffi::{CStr,CString};
-use std::str;
-use std::mem;
-use std::os::raw::c_char;
 
-#[no_mangle]
-#[allow(non_snake_case)]
-pub extern fn doubleNumber(n: i32) -> i32 {
-    n * 2
+package io.questdb.jna.example.rust;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+
+public class LibTest {
+
+    @Test
+    public void testLibrary() {
+        Assert.assertEquals(42, DoubleNumber.INSTANCE.doubleNumber(21));
+    }
 }

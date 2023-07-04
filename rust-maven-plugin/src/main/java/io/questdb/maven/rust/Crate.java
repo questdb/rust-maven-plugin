@@ -25,6 +25,7 @@
 package io.questdb.maven.rust;
 
 import io.questdb.jar.jni.Platform;
+import io.questdb.jar.jni.PlatformConventions;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -92,13 +93,13 @@ public class Crate {
     }
 
     public static String pinLibName(String name) {
-        return Platform.LIB_PREFIX +
+        return PlatformConventions.LIB_PREFIX +
                 name.replace('-', '_') +
-                Platform.LIB_SUFFIX;
+                PlatformConventions.LIB_SUFFIX;
     }
 
     public static String pinBinName(String name) {
-        return name + Platform.EXE_SUFFIX;
+        return name + PlatformConventions.EXE_SUFFIX;
     }
 
     public static Log nullLog() {

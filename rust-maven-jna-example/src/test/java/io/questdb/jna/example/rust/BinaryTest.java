@@ -22,7 +22,7 @@
  *
  ******************************************************************************/
 
-package io.questdb.example.rust;
+package io.questdb.jna.example.rust;
 
 import org.junit.Test;
 

@@ -22,16 +22,18 @@
  *
  ******************************************************************************/
 
-package io.questdb.example.rust;
+package io.questdb.jar.jni;
 
-import org.junit.Test;
+/**
+ * A re-implementation of the JNA Native class that only implements the `POINTER_SIZE` constant.
+ * This is to satisfy the compile requirements of `Platform.java` as extracted from the JNA project.
+ */
+public final class Native {
+    public static final int POINTER_SIZE;
 
-import static org.junit.Assert.assertEquals;
-
-public class LibTest {
-
-    @Test
-    public void testLibrary() {
-        assertEquals("Great Scott, A reversed string!: !dlroW olleH", Main.reversedString("Hello World!"));
+    static {
+        // Raise an issue or a PR if this fails to detect the correct pointer size.
+        final boolean is64Bit = System.getProperty("os.arch").contains("64");
+        POINTER_SIZE = is64Bit ? 8 : 4;
     }
 }

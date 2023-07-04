@@ -22,19 +22,17 @@
  *
  ******************************************************************************/
 
-package io.questdb.example.rust;
+package io.questdb.jni.example.rust;
 
+import io.questdb.jni.example.rust.Main;
+import org.junit.Test;
 
-import com.sun.jna.Library;
-import com.sun.jna.Native;
+import static org.junit.Assert.assertEquals;
 
-public interface StringReverse extends Library {
-    StringReverse INSTANCE = (StringReverse) Native.loadLibrary("str_reverse", StringReverse.class);
+public class LibTest {
 
-    String reversedString(String str);
-
-
-    public static void main(String[] args) {
-        System.out.println(StringReverse.INSTANCE.reversedString("Hello World!"));
+    @Test
+    public void testLibrary() {
+        assertEquals("Great Scott, A reversed string!: !dlroW olleH", Main.reversedString("Hello World!"));
     }
 }

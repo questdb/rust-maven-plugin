@@ -112,7 +112,7 @@
                                 Copy the generated binaries to the "classes" directory in the build target.
                                 We use this path because it will be bundled automatically into the final jar.
                             -->
-                            <copyTo>${project.build.directory}/classes/io/questdb/example/rust/libs</copyTo>
+                            <copyTo>${project.build.directory}/classes/io/questdb/jni/example/rust/libs</copyTo>
 
                             <!--
                                 Further nest copy into a child directory named through the target's platform.
@@ -156,11 +156,7 @@
                         </goals>
 
                         <configuration>
-                            <!--
-                                Path to the crate.
-                                One you've genenrally built earlier with a
-                                <goal>build</goal> execution.
-                            -->
+                            <!-- Relative path to the crate. -->
                             <path>src/main/rust/str-reverse</path>
 
                             <!-- Specify `true` to test a release (rather than debug) build. -->

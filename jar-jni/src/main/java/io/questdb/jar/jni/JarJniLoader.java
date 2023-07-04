@@ -48,7 +48,7 @@ public interface JarJniLoader {
         if (platformDir != null) {
             pathInJar += platformDir + "/";
         }
-        pathInJar += Platform.LIB_PREFIX + name + Platform.LIB_SUFFIX;
+        pathInJar += PlatformConventions.LIB_PREFIX + name + PlatformConventions.LIB_SUFFIX;
         final InputStream is = cls.getResourceAsStream(pathInJar);
         if (is == null) {
             throw new LoadException("Internal error: cannot find " + pathInJar + ", broken package?");

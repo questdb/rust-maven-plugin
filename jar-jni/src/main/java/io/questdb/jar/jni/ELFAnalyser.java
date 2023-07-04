@@ -1,18 +1,11 @@
+// Taken from https://github.com/java-native-access/jna/blob/e96f30192e9455e7cc4117cce06fc3fa80bead55/src/com/sun/jna/ELFAnalyser.java
+// Renamed the package to io.questdb.jar.jni to avoid conflicts with the original class.
+// This is done as suggested by the JNA team and permitted by the Apache License 2.0 license.
+// See: https://github.com/java-native-access/jna/issues/1515
+
 /* Copyright (c) 2017 Matthias Bläsing, All Rights Reserved
  *
- * The contents of this file is dual-licensed under 2
- * alternative Open Source/Free licenses: LGPL 2.1 or later and
- * Apache License 2.0. (starting with JNA version 4.0.0).
- *
- * You can freely decide which license you want to apply to
- * the project.
- *
- * You may obtain a copy of the LGPL License at:
- *
- * http://www.gnu.org/licenses/licenses.html
- *
- * A copy is also included in the downloadable source code package
- * containing JNA, in file "LGPL2.1".
+ * The contents of this file is licensed under the Apache License 2.0.
  *
  * You may obtain a copy of the Apache License at:
  *
