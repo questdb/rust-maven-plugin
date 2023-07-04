@@ -21,10 +21,6 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-use std::ffi::{CStr,CString};
-use std::str;
-use std::mem;
-use std::os::raw::c_char;
 
 #[no_mangle]
 #[allow(non_snake_case)]

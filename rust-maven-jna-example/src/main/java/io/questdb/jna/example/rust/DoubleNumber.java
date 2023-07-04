@@ -29,12 +29,11 @@ import com.sun.jna.Library;
 import com.sun.jna.Native;
 
 public interface DoubleNumber extends Library {
-    DoubleNumber INSTANCE = (DoubleNumber) Native.loadLibrary("double_number", DoubleNumber.class);
+    DoubleNumber INSTANCE = (DoubleNumber) Native.load("double_number", DoubleNumber.class);
 
     int doubleNumber(int n);
 
-
-    public static void main(String[] args) {
+    static void main(String[] args) {
         System.out.println(DoubleNumber.INSTANCE.doubleNumber(21));
     }
 }

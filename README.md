@@ -7,7 +7,7 @@ Build Rust Cargo crates within a Java Maven Project.
 ```shell
 $ mvn clean package
 ...
-[INFO] --- rust-maven-plugin:1.0.0:build (str-reverse) @ rust-maven-jni-example ---
+[INFO] --- rust-maven-plugin:1.1.0:build (str-reverse) @ rust-maven-jni-example ---
 [INFO] Working directory: /home/adam/questdb/repos/rust-maven-plugin/rust-maven-jni-example/src/main/rust/str-reverse
 [INFO] Environment variables:
 [INFO]   REVERSED_STR_PREFIX='Great Scott, A reversed string!'
@@ -74,7 +74,7 @@ Edit your `pom.xml` to add the plugin:
             <plugin>
                 <groupId>org.questdb</groupId>
                 <artifactId>rust-maven-plugin</artifactId>
-                <version>1.0.0</version>
+                <version>1.1.0</version>
                 <executions>
                     <execution>
                         <id>rust-build-id</id>
@@ -247,16 +247,64 @@ The `<copyTo>` configuration (as shown in the example) allows copying the
 binaries any path. The example however choses to copy them to
 `${project.build.directory}/classes/...`. Anything placed there gets bundled
 into the JAR file.
-The `classes` directory sits within the `target` directory and outside of the
+The `classes` directory sits within the `target` directory, outside the
 source tree.
 
+## IntelliJ Integration
+
+If you're using IntelliJ, you'll notice that the `rust-maven-plugin` is not invoked
+when you run `Build -> Build Project` or `Build -> Rebuild Project`.
+
+This is because IntelliJ uses its own build system, and does not invoke Maven.
+
+To work around this, you can add a Maven Run Configuration that invokes an Ant task before each build.
+The Ant task then invokes the Maven build step.
+
+Whilst it does sound a little scary to also involve Ant, the actual XML is (for once) very simple.
+
+`<your-proj-root>/rust-intellij.xml`:
+```xml
+<project name="str-reverse-intellij-integration" default="str-reverse-intellij-build" basedir=".">
+    <description>
+        IntelliJ integration to trigger maven steps to build the Rust code via the rust-maven-plugin.
+    </description>
+    <target name="str-reverse-intellij-build">
+        <exec executable="mvn">
+            <arg value="org.questdb:rust-maven-plugin:build@str-reverse"/>
+        </exec>
+    </target>
+</project>
+```
+
+In the XML above, `str-reverse` is the `<id>` of the `<execution>` block in the
+`rust-maven-plugin` configuration in the `pom.xml` file.
+
+You can add multiple executions here, for example to also build release binaries.
+
+Check the file into your source control.
+
+You can then go to the Ant window in IntelliJ (View -> Tool Windows -> Ant) and
+select the configured ant target, right-click, Execute On -> Before Build.
+
+This will generate a new `.idea/ant.xml` file that will be picked up by IntelliJ
+and will trigger the Ant task before each build which you probably want to add to source control.
+
+This file will look something like this:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AntConfiguration">
+    <buildFile url="file://$PROJECT_DIR$/rust-intellij.xml">
+      <executeOn event="beforeCompilation" target="str-reverse-intellij-build" />
+    </buildFile>
+  </component>
+</project>
+```
+
+Here is the IntelliJ reference for this feature: https://www.jetbrains.com/help/idea/configuring-triggers-for-ant-build-target.html#db2565bc
+
 ## Binaries in source tree
-
-Placing binaries in the source tree may be the "pragmatic" approach if you need
-to support IntelliJ which, by default, will not actually invoke `maven compile`
-during its usual operation.
-
-If you know a better way around this in IntelliJ do contact us!
 
 If you prefer to keep your binaries in the source tree, then you instead
 configure to copy binaries to the [`resources`](https://stackoverflow.com/questions/25786185/what-is-the-purpose-for-the-resource-folder-in-maven) directory
@@ -282,7 +330,7 @@ code when you need to.
                     <plugin>
                         <groupId>org.questdb</groupId>
                         <artifactId>rust-maven-plugin</artifactId>
-                        <version>1.0.0</version>
+                        <version>1.1.0</version>
 ...
 ```
 
@@ -297,13 +345,16 @@ above) will further nest the binaries in a directory named after the platform.
 target
     classes
         io/questdb/jni/example/rust/libs/
-            linux-amd64/libstr_reverse.so
-            mac_os_x-aarch64/libstr_reverse.dylib
-            windows-amd64/str_reverse.dll
+            linux-x86-64/libstr_reverse.so
+            darwin-aarch64/libstr_reverse.dylib
+            win32-x86-64/str_reverse.dll
 ```
 
 If you only intend to target one single platform (e.g. linux-amd64), then you
 don't need `<copyWithPlatformDir>true</copyWithPlatformDir>` and the plugin will not create a nested directory.
+
+Whilst we don't depend on the JNA library, the plugin's naming convention matches that of JNA's
+[Platform.RESOURCE_PREFIX](http://java-native-access.github.io/jna/5.13.0/javadoc/com/sun/jna/Platform.html#RESOURCE_PREFIX).
 
 # Loading binaries from the `.jar` with `jar-jni`
 
@@ -317,7 +368,7 @@ The `jar-jni` library is configured as so:
       <dependency>
           <groupId>org.questdb</groupId>
           <artifactId>jar-jni</artifactId>
-          <version>1.0.0</version>
+          <version>1.1.0</version>
       </dependency>
     </dependencies>
     ...
