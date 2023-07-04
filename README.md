@@ -7,7 +7,7 @@ Build Rust Cargo crates within a Java Maven Project.
 ```shell
 $ mvn clean package
 ...
-[INFO] --- rust-maven-plugin:1.1.0:build (str-reverse) @ rust-maven-jni-example ---
+[INFO] --- rust-maven-plugin:1.1.1:build (str-reverse) @ rust-maven-jni-example ---
 [INFO] Working directory: /home/adam/questdb/repos/rust-maven-plugin/rust-maven-jni-example/src/main/rust/str-reverse
 [INFO] Environment variables:
 [INFO]   REVERSED_STR_PREFIX='Great Scott, A reversed string!'
@@ -74,7 +74,7 @@ Edit your `pom.xml` to add the plugin:
             <plugin>
                 <groupId>org.questdb</groupId>
                 <artifactId>rust-maven-plugin</artifactId>
-                <version>1.1.0</version>
+                <version>1.1.1</version>
                 <executions>
                     <execution>
                         <id>rust-build-id</id>
@@ -330,7 +330,7 @@ code when you need to.
                     <plugin>
                         <groupId>org.questdb</groupId>
                         <artifactId>rust-maven-plugin</artifactId>
-                        <version>1.1.0</version>
+                        <version>1.1.1</version>
 ...
 ```
 
@@ -368,7 +368,7 @@ The `jar-jni` library is configured as so:
       <dependency>
           <groupId>org.questdb</groupId>
           <artifactId>jar-jni</artifactId>
-          <version>1.1.0</version>
+          <version>1.1.1</version>
       </dependency>
     </dependencies>
     ...
