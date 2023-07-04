@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -251,12 +252,12 @@ public class CrateTest {
                 "debug");
         mock.writeCargoToml(
                 "[package]\n" +
-                "name = \"test-lib\"\n" +
-                "version = \"0.1.0\"\n" +
-                "edition = \"2021\"\n" +
-                "\n" +
-                "[lib]\n" +
-                "crate_type = [\"cdylib\"]\n");
+                        "name = \"test-lib\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n" +
+                        "\n" +
+                        "[lib]\n" +
+                        "crate_type = [\"cdylib\"]\n");
         mock.touchSrc("lib.rs");
         final Path cdylibPath = mock.touchLib("test-lib");
 
@@ -457,6 +458,70 @@ public class CrateTest {
         assertTrue(Files.exists(expectedExtraBinPath));
     }
 
+    public static Crate.Params defaultParams() {
+        final Crate.Params params = new Crate.Params();
+        params.release = false;
+        params.features = new String[0];
+        params.cargoPath = "cargo";
+        params.environmentVariables = new HashMap<>();
+        return params;
+    }
+
+    @Test
+    public void testTwoFeatures() throws Exception {
+        final String crateName = "two-features";
+        final MockCrate mock = new MockCrate(crateName, "release");
+        mock.writeCargoToml(
+                "[package]\n" +
+                        "name = \"" + crateName + "\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n" +
+                        "\n" +
+                        "[features]\n" +
+                        "feature1 = []\n" +
+                        "feature2 = []\n");
+        final Path libSrc = mock.touchSrc("lib.rs");
+        writeFile(libSrc, "pub fn foo() -> i32 { 42 }");
+
+        final Crate.Params params = defaultParams();
+        params.features = new String[]{"feature1", "feature2"};
+
+        final Crate crate = new Crate(
+                mock.crateRoot,
+                targetRootDir,
+                params);
+        crate.setLog(TestLog.INSTANCE);
+        crate.build();
+    }
+
+    @Test
+    public void testEmptyFeatures() throws Exception {
+        final String crateName = "two-features";
+        final MockCrate mock = new MockCrate(crateName, "release");
+        mock.writeCargoToml(
+                "[package]\n" +
+                        "name = \"" + crateName + "\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n" +
+                        "\n" +
+                        "[features]\n" +
+                        "feature1 = []\n" +
+                        "feature2 = []\n");
+        final Path libSrc = mock.touchSrc("lib.rs");
+        writeFile(libSrc, "pub fn foo() -> i32 { 42 }");
+
+        final Crate.Params params = defaultParams();
+        params.features = new String[]{"", ""};
+        params.release = true;
+
+        final Crate crate = new Crate(
+                mock.crateRoot,
+                targetRootDir,
+                params);
+        crate.setLog(TestLog.INSTANCE);
+        crate.build();
+    }
+
     @Test
     public void testBadCargoToml() throws Exception {
         // Setting up mock Rust project directory.
@@ -479,6 +544,13 @@ public class CrateTest {
                 () -> new Crate(mock.crateRoot, targetRootDir, params));
     }
 
+    private static Path writeFile(Path dest, String contents) throws IOException {
+        try (PrintWriter w = new PrintWriter(dest.toFile(), "UTF-8")) {
+            w.write(contents);
+        }
+        return dest;
+    }
+
     class MockCrate {
         private final String name;
         private final String profile;
@@ -492,9 +564,7 @@ public class CrateTest {
 
         public void writeCargoToml(String contents) throws IOException {
             Path cargoToml = crateRoot.resolve("Cargo.toml");
-            try (PrintWriter w = new PrintWriter(cargoToml.toFile(), "UTF-8")) {
-                w.write(contents);
-            }
+            writeFile(cargoToml, contents);
         }
 
         public Path touchBin(String name) throws IOException {
