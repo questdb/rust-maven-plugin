@@ -1,0 +1,3 @@
+[build]
+# <pom.xml:parentDir>/target/rust-maven-plugin/double-number
+target-dir = "../../../../target/rust-maven-plugin/double-number"

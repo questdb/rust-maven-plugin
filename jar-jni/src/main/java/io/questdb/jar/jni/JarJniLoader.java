@@ -84,7 +84,7 @@ public interface JarJniLoader {
      * The library is loaded from the platform-specific subdirectory of the jarPathPrefix.
      * <p>
      * The platform-specific subdirectory derived from the current platform and
-     * the architecture of the JVM as determined by {@link OsInfo#PLATFORM}.
+     * the architecture of the JVM as determined by {@link Platform#RESOURCE_PREFIX}.
      * <p>
      * For example if executing, <code>JarJniLoader.loadLib(MyClass.class, "/native", "mylib");</code>
      * on a 64-bit x86 Linux system, the library will be loaded from "/native/linux-amd64/libmylib.so"

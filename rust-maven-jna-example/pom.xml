@@ -27,7 +27,7 @@
 
     <groupId>org.questdb</groupId>
     <artifactId>rust-maven-jna-example</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.1.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Rust Maven Plugin JNA Usage Example</name>
@@ -68,7 +68,7 @@
             <!--
                 The Rust Maven Plugin
 
-                Here it'll build the `str-reverse` crate and place the cdylib in the target's "classes" directory.
+                Here it'll build the `double-number` crate and place the cdylib in the target's "classes" directory.
                 Placing it there will have Maven automatically bundle the compiled code in the Jar.
             -->
             <plugin>
@@ -77,7 +77,7 @@
                 <version>${project.version}</version>
                 <executions>
                     <execution>
-                        <id>str-reverse</id>
+                        <id>double-number</id>
                         <goals>
                             <goal>build</goal>
                         </goals>
@@ -97,7 +97,7 @@
                             <!--
                                 The path to the Rust crate we want to build (which will contain a Cargo.toml).
                             -->
-                            <path>src/main/rust/str-reverse</path>
+                            <path>src/main/rust/double-number</path>
 
                             <!--
                                 Passes `- - release` to `cargo build` to create a release build.
@@ -124,23 +124,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <!-- The plugin can also be used to compile binaries. -->
-                        <id>str-reverse-binary</id>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                        <configuration>
-                            <path>src/main/rust/str-reverse-binary</path>
-                            <release>true</release>
-                            <copyTo>${project.build.directory}/bin</copyTo>
-                            <features>
-                                <feature>header</feature>
-                                <feature>footer</feature>
-                            </features>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>str-reverse-test</id>
+                        <id>double-number-test</id>
 
                         <!--
                             This execution will run the `cargo test` command on the crate.
@@ -152,7 +136,7 @@
 
                         <configuration>
                             <!-- Relative path to the crate. -->
-                            <path>src/main/rust/str-reverse</path>
+                            <path>src/main/rust/double-number</path>
 
                             <!-- Specify `true` to test a release (rather than debug) build. -->
                             <release>false</release>

@@ -41,7 +41,7 @@ fn main() -> ExitCode {
             println!("<<<<<<<<<<<<<<<<<<<<<<<<<<");
 
             ExitCode::SUCCESS
-        },
+        }
         _ => {
             eprintln!("Error: Must provide a single string argument.");
             ExitCode::FAILURE

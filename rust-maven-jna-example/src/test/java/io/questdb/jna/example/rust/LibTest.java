@@ -27,10 +27,7 @@ package io.questdb.jna.example.rust;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
 public class LibTest {
-
     @Test
     public void testLibrary() {
         Assert.assertEquals(42, DoubleNumber.INSTANCE.doubleNumber(21));

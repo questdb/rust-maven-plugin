@@ -189,7 +189,9 @@ public class Crate {
     public boolean hasCdylib() {
         try {
             TomlArray crateTypes = getCrateTypes();
-            if (crateTypes == null) return false;
+            if (crateTypes == null) {
+                return false;
+            }
 
             for (int index = 0; index < crateTypes.size(); index++) {
                 String crateType = crateTypes.getString(index);
@@ -214,7 +216,7 @@ public class Crate {
     }
 
     private String getCdylibName() throws MojoExecutionException {
-        String name = null;
+        String name;
         try {
             name = cargoToml.getString("lib.name");
         } catch (TomlInvalidTypeException e) {
@@ -262,7 +264,7 @@ public class Crate {
                                 "expected a `bin` table at index " + index);
             }
 
-            String name = null;
+            String name;
             try {
                 name = bin.getString("name");
             } catch (TomlInvalidTypeException e) {
@@ -277,7 +279,7 @@ public class Crate {
                                 "missing `name` key at `bin` with index " + index);
             }
 
-            String path = null;
+            String path;
             try {
                 path = bin.getString("path");
             } catch (TomlInvalidTypeException e) {
@@ -349,11 +351,10 @@ public class Crate {
         // Set the current working directory for the cargo command.
         processBuilder.directory(crateRoot.toFile());
         final Process process = processBuilder.start();
-        Executors.newSingleThreadExecutor().submit(() -> {
-            new BufferedReader(new InputStreamReader(process.getInputStream()))
-                    .lines()
-                    .forEach(log::info);
-        });
+        Executors.newSingleThreadExecutor().submit(() ->
+                new BufferedReader(new InputStreamReader(process.getInputStream()))
+                        .lines()
+                        .forEach(log::info));
 
         final int exitCode = process.waitFor();
         if (exitCode != 0) {
@@ -379,7 +380,7 @@ public class Crate {
         try {
             runCommand(cmd);
         } catch (IOException | InterruptedException e) {
-            CargoInstalledChecker.INSTANCE.check(log, cargoPath);
+            CargoInstalledChecker.INSTANCE.check(cargoPath);
             throw new MojoFailureException("Failed to invoke cargo", e);
         }
     }
