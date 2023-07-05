@@ -252,13 +252,7 @@ source tree.
 
 ## Binaries in source tree
 
-Placing binaries in the source tree may be the "pragmatic" approach if you need
-to support IntelliJ which, by default, will not actually invoke `maven compile`
-during its usual operation.
-
-If you know a better way around this in IntelliJ do contact us!
-
-If you prefer to keep your binaries in the source tree, then you instead
+If you prefer to keep your binaries in the source tree, then you can instead
 configure to copy binaries to the [`resources`](https://stackoverflow.com/questions/25786185/what-is-the-purpose-for-the-resource-folder-in-maven) directory
 instead:
 
