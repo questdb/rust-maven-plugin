@@ -40,7 +40,7 @@ public class CargoTestMojo extends CargoMojoBase {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (skipTests) {
+        if (skip || skipTests) {
             getLog().info("Skipping tests");
             return;
         }

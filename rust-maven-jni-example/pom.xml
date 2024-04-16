@@ -169,6 +169,41 @@
                             </environmentVariables>
                         </configuration>
                     </execution>
+                    <execution>
+                        <!-- 
+                            This is an example of how to skip an execution.
+                            You can use this to skip both "build" and "test" executions.
+
+                            The example below configures
+
+                                <skip>true</skip>
+
+                            But you could use a property here too:
+
+                                <skip>${dummy.skip}</skip>
+
+                            If you wanted to always build unless specifed on the command line,
+                            you can default it in config in the properties section of your pom.xml:
+
+                                <properties>
+                                    <dummy.skip>false</dummy.skip>
+                                </properties>
+
+                            Then you can run:
+
+                                mvn clean package -Ddummy.skip=true
+
+                            To skip the specific execution.
+                        -->
+                        <id>dummy</id>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                        <configuration>
+                            <skip>true</skip>
+                            <path>required, but not evaluated if skipped</path>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>

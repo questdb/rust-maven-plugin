@@ -48,6 +48,12 @@ public abstract class CargoMojoBase extends AbstractMojo {
     private String cargoPath;
 
     /**
+     * Skip this configured execution.
+     */
+    @Parameter(property = "skip", defaultValue = "false")
+    protected boolean skip;
+
+    /**
      * Path to the Rust crate to build.
      */
     @Parameter(property = "path", required = true)
