@@ -22,12 +22,12 @@
   ~
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.questdb</groupId>
     <artifactId>rust-maven-jni-example</artifactId>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Rust Maven Plugin Usage Example</name>
@@ -173,27 +173,6 @@
                         <!-- 
                             This is an example of how to skip an execution.
                             You can use this to skip both "build" and "test" executions.
-
-                            The example below configures
-
-                                <skip>true</skip>
-
-                            But you could use a property here too:
-
-                                <skip>${dummy.skip}</skip>
-
-                            If you wanted to always build unless specifed on the command line,
-                            you can default it in config in the properties section of your pom.xml:
-
-                                <properties>
-                                    <dummy.skip>false</dummy.skip>
-                                </properties>
-
-                            Then you can run:
-
-                                mvn clean package -Ddummy.skip=true
-
-                            To skip the specific execution.
                         -->
                         <id>dummy</id>
                         <goals>
