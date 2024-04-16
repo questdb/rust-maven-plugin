@@ -38,6 +38,15 @@ public abstract class CargoMojoBase extends AbstractMojo {
     @Parameter(property = "project", readonly = true)
     protected MavenProject project;
 
+    /**
+     * Skip this configured execution.
+     */
+    @Parameter(property = "skip", defaultValue = "false")
+    protected boolean skip;
+
+    /**
+     * Additional environment variables set when running `cargo`.
+     */
     @Parameter(property = "environmentVariables")
     private HashMap<String, String> environmentVariables;
 

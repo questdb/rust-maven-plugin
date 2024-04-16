@@ -209,6 +209,35 @@ Additional arguments to can go in the `<extra-args>` configuration section.
 </extra-args>
 ```
 
+## Skipping an execution
+
+If you need to skip an execution, you can set `<skip>true</skip>` in the
+`<configuration>` block of the `<execution>` of the plugin.
+
+```xml
+<skip>true</skip>  <!-- or `false`, the default value. -->
+```
+
+This is probably most useful when driven from a property.
+
+```xml
+<skip>${skipRustBuild}</skip>
+```
+
+The property can be defaulted in the `<properties>` section of the `pom.xml` file.
+
+```xml
+<properties>
+    <skipRustBuild>false</skipRustBuild>
+</properties>
+```
+
+And then overridden on the command line with `-DskipRustBuild=true`.
+
+```shell
+$ mvn package -DskipRustBuild=true
+```
+
 ## Overriding Environment Variables
 
 The plugin can be configured to override environment variables during the build.

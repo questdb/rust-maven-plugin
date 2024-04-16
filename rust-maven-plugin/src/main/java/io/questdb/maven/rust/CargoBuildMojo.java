@@ -58,6 +58,10 @@ public class CargoBuildMojo extends CargoMojoBase {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (skip) {
+            getLog().info("Skipping build");
+            return;
+        }
         final Crate crate = new Crate(
                 getCrateRoot(),
                 getTargetRootDir(),
