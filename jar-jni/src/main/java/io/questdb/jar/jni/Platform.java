@@ -243,8 +243,8 @@ public final class Platform {
         else if ("i386".equals(arch) || "i686".equals(arch)) {
             arch = "x86";
         }
-        else if ("x86_64".equals(arch) || "amd64".equals(arch)) {
-            arch = "x86-64";
+        else if ("x86_64".equals(arch) || "x86-64".equals(arch)) {
+            arch = "amd64";
         }
         else if ("zarch_64".equals(arch)) {
             arch = "s390x";
