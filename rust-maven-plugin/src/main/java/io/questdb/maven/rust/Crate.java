@@ -186,6 +186,10 @@ public class Crate {
         return params.release ? "release" : "debug";
     }
 
+    private String getTarget() {
+        return params.target == null ? "" : params.target;
+    }
+
     public boolean hasCdylib() {
         try {
             TomlArray crateTypes = getCrateTypes();
@@ -308,10 +312,12 @@ public class Crate {
     public List<Path> getArtifactPaths() throws MojoExecutionException {
         List<Path> paths = new ArrayList<>();
         final String profile = getProfile();
+        final String target = getTarget();
 
         final String libName = getCdylibName();
         if (libName != null) {
             final Path libPath = targetDir
+                    .resolve(target)
                     .resolve(profile)
                     .resolve(pinLibName(libName));
             paths.add(libPath);
@@ -319,6 +325,7 @@ public class Crate {
 
         for (String binName : getBinNames()) {
             final Path binPath = targetDir
+                    .resolve(target)
                     .resolve(profile)
                     .resolve(pinBinName(binName));
             paths.add(binPath);
@@ -395,6 +402,11 @@ public class Crate {
 
         if (params.release) {
             args.add("--release");
+        }
+
+        if (params.target != null) {
+            args.add("--target");
+            args.add(params.target);
         }
 
         if (params.allFeatures) {
@@ -500,6 +512,7 @@ public class Crate {
         public HashMap<String, String> environmentVariables;
         public String cargoPath;
         public boolean release;
+        public String target;
         public String[] features;
         public boolean allFeatures;
         public boolean noDefaultFeatures;
