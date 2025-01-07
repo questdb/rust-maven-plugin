@@ -446,6 +446,51 @@ public class Crate {
         cargo(args);
     }
 
+    private String getNativeLibraryResourcePrefixFromRustTriple(String rustTriple) {
+        if (rustTriple == null || rustTriple.trim().isEmpty()) {
+            throw new IllegalArgumentException("Rust triple cannot be null or empty");
+        }
+
+        String[] parts = rustTriple.split("-");
+        if (parts.length < 3) {
+            throw new IllegalArgumentException("Invalid Rust triple format: " + rustTriple);
+        }
+
+        String arch = parts[0];
+        String sys = parts[2];
+        String abi = (parts.length > 3) ? parts[3] : null;
+
+        String osName;
+        switch (sys) {
+            case "linux":
+                osName = (abi != null && abi.equals("android")) ? "android" : "linux";
+                break;
+            case "darwin":
+            case "ios":
+                osName = "darwin";
+                break;
+            case "windows":
+                osName = "win32";
+                break;
+            case "freebsd":
+                osName = "freebsd";
+                break;
+            case "openbsd":
+                osName = "openbsd";
+                break;
+            case "netbsd":
+                osName = "netbsd";
+                break;
+            case "solaris":
+                osName = "sunos"; // Keep "sunos" for consistency with existing code
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported OS in Rust triple: " + sys);
+        }
+
+        return osName + "-" + arch;
+    }
+
     private Path resolveCopyToDir() throws MojoExecutionException {
 
         Path copyToDir = params.copyToDir;
@@ -455,7 +500,12 @@ public class Crate {
         }
 
         if (params.copyWithPlatformDir) {
-            copyToDir = copyToDir.resolve(Platform.RESOURCE_PREFIX);
+            if (params.target != null) {
+                copyToDir = copyToDir.resolve(
+                        getNativeLibraryResourcePrefixFromRustTriple(params.target));
+            } else {
+                copyToDir = copyToDir.resolve(Platform.RESOURCE_PREFIX);
+            }
         }
 
         if (!Files.exists(copyToDir, LinkOption.NOFOLLOW_LINKS)) {
