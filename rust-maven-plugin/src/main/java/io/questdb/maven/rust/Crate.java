@@ -456,7 +456,7 @@ public class Crate {
             throw new IllegalArgumentException("Invalid Rust triple format: " + rustTriple);
         }
 
-        String arch = parts[0];
+        String arch = parts[0].replace("_", "-");
         String sys = parts[2];
         String abi = (parts.length > 3) ? parts[3] : null;
 
@@ -482,7 +482,7 @@ public class Crate {
                 osName = "netbsd";
                 break;
             case "solaris":
-                osName = "sunos"; // Keep "sunos" for consistency with existing code
+                osName = "sunos";
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported OS in Rust triple: " + sys);
