@@ -152,11 +152,12 @@ public class CrateTest {
         doTestDefaultBin(true, true, true);
     }
 
-    private void doTestCdylib(boolean release, boolean copyTo, boolean copyWithPlatformDir) throws Exception {
+    private void doTestCdylib(boolean release, String target, boolean copyTo, boolean copyWithPlatformDir) throws Exception {
         // Setting up mock Rust project directory.
         final MockCrate mock = new MockCrate(
                 "test-lib-1",
-                release ? "release" : "debug");
+                release ? "release" : "debug",
+                target);
         mock.writeCargoToml(
                 "[package]\n" +
                         "name = \"test-lib\"\n" +
@@ -201,10 +202,29 @@ public class CrateTest {
         assertTrue(Files.exists(expectedLibPath));
     }
 
+    private void doTestCdylib(boolean release, boolean copyTo, boolean copyWithPlatformDir) throws Exception {
+        doTestCdylib(release, null, copyTo, copyWithPlatformDir);
+    }
+
+    @Test
+    public void testCdylibDebugNoCopyTo() throws Exception {
+        doTestCdylib(false, false, false);
+    }
+
+    @Test
+    public void testCdylibDebugNoCopyToCustomTarget() throws Exception {
+        doTestCdylib(false, "wasm32-unknown-unknown", false, false);
+    }
+
     @Test
     public void testCdylibDebug() throws Exception {
         // Last arg to `true` should be ignored.
         doTestCdylib(false, false, true);
+    }
+
+    @Test
+    public void testCdylibDebugCustomTarget() throws Exception {
+        doTestCdylib(false, "wasm32-unknown-unknown", false, true);
     }
 
     @Test
@@ -213,8 +233,18 @@ public class CrateTest {
     }
 
     @Test
+    public void testCdylibDebugCopyToCustomTarget() throws Exception {
+        doTestCdylib(false, "wasm32-unknown-unknown", true, false);
+    }
+
+    @Test
     public void testCdylibReleaseCopyTo() throws Exception {
         doTestCdylib(true, true, false);
+    }
+
+    @Test
+    public void testCdylibReleaseCopyToCustomTarget() throws Exception {
+        doTestCdylib(true, "wasm32-unknown-unknown", true, false);
     }
 
     @Test
@@ -223,8 +253,18 @@ public class CrateTest {
     }
 
     @Test
+    public void testCdylibDebugCopyToPlatformDirCustomTarget() throws Exception {
+        doTestCdylib(false, "wasm32-unknown-unknown", true, true);
+    }
+
+    @Test
     public void testCdylibReleaseCopyToPlatformDir() throws Exception {
         doTestCdylib(true, true, true);
+    }
+
+    @Test
+    public void testCdylibReleaseCopyToPlatformDirCustomTarget() throws Exception {
+        doTestCdylib(true, "wasm32-unknown-unknown", true, true);
     }
 
     @Test
@@ -579,12 +619,18 @@ public class CrateTest {
     class MockCrate {
         private final String name;
         private final String profile;
+        private final String target;
         private final Path crateRoot;
 
-        public MockCrate(String name, String profile) throws IOException {
+        public MockCrate(String name, String profile, String target) throws IOException {
             this.name = name;
             this.profile = profile;
+            this.target = target;
             this.crateRoot = tmpDir.newFolder(name).toPath();
+        }
+
+        public MockCrate(String name, String profile) throws IOException {
+            this(name, profile, null);
         }
 
         public void writeCargoToml(String contents) throws IOException {
@@ -595,6 +641,7 @@ public class CrateTest {
         public Path touchBin(String name) throws IOException {
             final Path mockBinPath = targetRootDir
                     .resolve(this.name)
+                    .resolve(target == null ? "" : target)
                     .resolve(profile)
                     .resolve(name + (isWindows() ? ".exe" : ""));
             if (!Files.exists(mockBinPath.getParent())) {

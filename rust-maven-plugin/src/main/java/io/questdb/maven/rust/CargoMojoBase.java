@@ -71,6 +71,12 @@ public abstract class CargoMojoBase extends AbstractMojo {
     private boolean release;
 
     /**
+     * Set the target triple.
+     */
+    @Parameter(property = "target")
+    private String target;
+
+    /**
      * List of features to activate.
      * If not specified, default features are activated.
      * Equivalent to Cargo's `--features` option.
@@ -143,6 +149,7 @@ public abstract class CargoMojoBase extends AbstractMojo {
         params.environmentVariables = environmentVariables;
         params.cargoPath = cargoPath;
         params.release = release;
+        params.target = target;
         params.features = features;
         params.allFeatures = allFeatures;
         params.noDefaultFeatures = noDefaultFeatures;

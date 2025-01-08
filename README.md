@@ -159,6 +159,17 @@ The plugin can be configured to build in release mode by setting
 Building `--release` will cut down binary size considerably and should be taken
 into consideration when shipping binaries in `.jar` files.
 
+## Cross-compilation
+
+The plugin can be configured to cross-compile by setting
+`<target>...</target>` in the `<configuration>` block.
+
+The plugin will invoke `cargo build` with the `--target` flag.
+
+```xml
+<target>x86_64-apple-darwin</target>
+```
+
 ## Specifying Crate Features
 
 The equivalent of `cargo build --features feat1,feat2,feat3` is
