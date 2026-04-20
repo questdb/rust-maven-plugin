@@ -9,12 +9,14 @@ on:
 jobs:
   gitleaks:
     runs-on: ubuntu-latest
+    env:
+      HAS_GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE != '' }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@83d9cd684c87d95d656c1458ef04895a7f1cbd8e
-        if: ${{ secrets.GITLEAKS_LICENSE != '' }}
+        if: ${{ env.HAS_GITLEAKS_LICENSE == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
