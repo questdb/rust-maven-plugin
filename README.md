@@ -282,10 +282,21 @@ they share one cargo target directory. To keep that safe, the plugin takes its o
 exclusive lock (a lock file next to the target directory) spanning the whole build and
 the subsequent artifact copy - not just the `cargo` invocation. This matters because
 cargo leaves the final artifact under `<profile>` un-fingerprinted and releases its own
-lock as soon as it exits, so without the plugin lock a second checkout could overwrite
-that artifact in the window before the first checkout copies it. Builds and tests across
-worktrees are therefore serialized rather than clobbering each other, and each checkout's
-artifacts are copied into its own `<copyTo>` location.
+lock as soon as it exits, so without the plugin lock a second **plugin-driven** build
+could overwrite that artifact in the window before the first one copies it. Builds and
+tests driven by the plugin across worktrees are therefore serialized rather than
+clobbering each other, and each checkout's artifacts are copied into its own `<copyTo>`
+location.
+
+**Scope of the lock.** It only coordinates builds that go through this plugin - it is an
+ordinary advisory lock file that a plain `cargo build`/`test`, or an IDE / rust-analyzer,
+knows nothing about. Do not point a concurrent raw `cargo` invocation at a *shared* target
+directory: it can overwrite the final artifact in the copy window regardless of the lock.
+In practice tools use their own target directory by default (an IDE or rust-analyzer does
+not build into the plugin's `--target-dir` unless you configure it to, e.g. via
+`.cargo/config.toml`), so this is only a concern if you deliberately share the directory
+with non-Maven builds. A fully writer-agnostic fix awaits cargo's `--artifact-dir` (copy
+the final artifact straight to a private directory), which is still nightly-only.
 
 Note: a shared directory set outside `${project.build.directory}` is **not** removed by
 `mvn clean` (see below).

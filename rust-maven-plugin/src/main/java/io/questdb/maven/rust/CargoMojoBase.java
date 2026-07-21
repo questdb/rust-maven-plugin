@@ -119,7 +119,9 @@ public abstract class CargoMojoBase extends AbstractMojo {
      * single shared directory to reuse compiled dependencies across builds instead of
      * recompiling and re-storing the same crates for each checkout. When a directory is
      * shared, the plugin serializes builds against it with its own lock (see
-     * `TargetDirLock`) so concurrent builds cannot overwrite each other's artifacts.
+     * `TargetDirLock`) so concurrent plugin-driven builds cannot overwrite each other's
+     * artifacts. That lock does not coordinate with raw `cargo` runs outside the plugin,
+     * so do not point a concurrent standalone `cargo` build at a shared directory.
      * Note that a shared directory set outside `${project.build.directory}` is no longer
      * removed by `mvn clean`.
      */

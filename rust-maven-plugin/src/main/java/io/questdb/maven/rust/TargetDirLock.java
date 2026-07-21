@@ -53,6 +53,12 @@ import java.util.concurrent.locks.ReentrantLock;
  * by the whole JVM: two threads in the same reactor (e.g. a parallel `mvn -T` build)
  * would otherwise race to lock the same file and hit an
  * `OverlappingFileLockException` instead of being serialized.
+ * <p>
+ * Scope: this is an advisory lock file that only invocations of this plugin acquire.
+ * It does not coordinate with a standalone `cargo` build (or an IDE / rust-analyzer)
+ * run against the same target directory; such a build can still overwrite the final
+ * artifact in the copy window. Tools use their own target directory by default, so a
+ * shared directory should only ever be built into by this plugin.
  */
 final class TargetDirLock implements AutoCloseable {
     private static final ConcurrentHashMap<Path, ReentrantLock> JVM_LOCKS =
