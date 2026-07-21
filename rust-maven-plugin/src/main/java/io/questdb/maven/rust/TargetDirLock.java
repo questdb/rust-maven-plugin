@@ -64,6 +64,9 @@ final class TargetDirLock implements AutoCloseable {
     private static final ConcurrentHashMap<Path, ReentrantLock> JVM_LOCKS =
             new ConcurrentHashMap<>();
 
+    /** A no-op lock, used when the target directory is private to this build. */
+    private static final TargetDirLock DISABLED = new TargetDirLock(null, null, null);
+
     private final ReentrantLock jvmLock;
     private final FileChannel channel;
     private final FileLock fileLock;
@@ -72,6 +75,11 @@ final class TargetDirLock implements AutoCloseable {
         this.jvmLock = jvmLock;
         this.channel = channel;
         this.fileLock = fileLock;
+    }
+
+    /** Returns a lock that does nothing; for target directories that are not shared. */
+    static TargetDirLock disabled() {
+        return DISABLED;
     }
 
     /**
@@ -107,6 +115,9 @@ final class TargetDirLock implements AutoCloseable {
 
     @Override
     public void close() throws MojoExecutionException {
+        if (fileLock == null) {
+            return;
+        }
         try {
             fileLock.release();
             channel.close();

@@ -280,7 +280,10 @@ $ mvn package -Drust.targetRootDir=$HOME/.cache/shared-rust-target
 Because every worktree resolves the same crate directory name under the shared root,
 they share one cargo target directory. To keep that safe, the plugin takes its own
 exclusive lock (a lock file next to the target directory) spanning the whole build and
-the subsequent artifact copy - not just the `cargo` invocation. This matters because
+the subsequent artifact copy - not just the `cargo` invocation. The lock engages only
+when `targetRootDir` points outside `${project.build.directory}` (i.e. a shared or
+otherwise non-default directory); a conventional single-checkout build takes no lock and
+is unaffected. This matters because
 cargo leaves the final artifact under `<profile>` un-fingerprinted and releases its own
 lock as soon as it exits, so without the plugin lock a second **plugin-driven** build
 could overwrite that artifact in the window before the first one copies it. Builds and

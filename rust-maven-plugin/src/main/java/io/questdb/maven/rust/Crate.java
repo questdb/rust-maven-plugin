@@ -426,9 +426,16 @@ public class Crate {
      * {@link #copyArtifacts()} (or {@link #test()}) so that a concurrent build sharing
      * the same target directory cannot overwrite the final artifact before it is copied.
      * See {@link TargetDirLock} for details.
+     * <p>
+     * When {@code shared} is false the target directory is private to this build, so the
+     * returned lock is a no-op and the build is not serialized.
      */
-    public TargetDirLock lockTargetDir() throws MojoExecutionException {
-        log.info("Acquiring exclusive lock on target dir: " + targetDir.toAbsolutePath());
+    public TargetDirLock lockTargetDir(boolean shared) throws MojoExecutionException {
+        if (!shared) {
+            return TargetDirLock.disabled();
+        }
+        log.info("Acquiring exclusive lock on shared target dir: "
+                + targetDir.toAbsolutePath());
         return TargetDirLock.acquire(targetDir);
     }
 

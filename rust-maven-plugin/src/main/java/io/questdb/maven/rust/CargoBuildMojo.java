@@ -67,10 +67,11 @@ public class CargoBuildMojo extends CargoMojoBase {
                 getTargetRootDir(),
                 extractCrateParams());
         crate.setLog(getLog());
-        // Lock spans both the build and the copy: cargo leaves the (non-fingerprinted)
-        // final artifact in the target dir, and a concurrent build sharing that dir could
-        // overwrite it between `cargo` exiting and copyArtifacts() reading it.
-        try (TargetDirLock ignored = crate.lockTargetDir()) {
+        // For a shared target dir the lock spans both the build and the copy: cargo
+        // leaves the (non-fingerprinted) final artifact in the target dir, and a
+        // concurrent plugin build sharing that dir could overwrite it between `cargo`
+        // exiting and copyArtifacts() reading it. No-op for a private target dir.
+        try (TargetDirLock ignored = crate.lockTargetDir(isSharedTargetDir())) {
             crate.build();
             crate.copyArtifacts();
         }

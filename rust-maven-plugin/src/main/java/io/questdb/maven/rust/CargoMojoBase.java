@@ -163,6 +163,18 @@ public abstract class CargoMojoBase extends AbstractMojo {
         return Paths.get(targetRootDir);
     }
 
+    /**
+     * Whether the configured target root is a shared directory, i.e. not the module's
+     * own directory under `${project.build.directory}`. The build lock only engages for
+     * shared directories, so a conventional single-checkout build is unaffected.
+     */
+    protected boolean isSharedTargetDir() {
+        final Path root = getTargetRootDir().toAbsolutePath().normalize();
+        final Path buildDir = Paths.get(project.getBuild().getDirectory())
+                .toAbsolutePath().normalize();
+        return !root.startsWith(buildDir);
+    }
+
     protected Crate.Params getCommonCrateParams() throws MojoExecutionException {
         final Crate.Params params = new Crate.Params();
         params.verbosity = getVerbosity();
