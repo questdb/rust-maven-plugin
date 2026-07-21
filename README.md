@@ -251,11 +251,47 @@ In the `<configuration>` section, add:
 </environmentVariables>
 ```
 
+## Overriding the cargo target directory
+
+By default the plugin builds into `${project.build.directory}/rust-maven-plugin`
+(i.e. inside Maven's `target` directory). Set `<targetRootDir>` to build somewhere
+else. The plugin appends the crate's directory name and passes the result to cargo
+as `--target-dir`.
+
+```xml
+<targetRootDir>${project.build.directory}/rust-maven-plugin</targetRootDir>
+```
+
+The main use case is **sharing compiled dependencies across checkouts**. If you keep
+several git worktrees (or sibling clones) of the same project, each one otherwise gets
+its own copy of every compiled dependency, which recompiles and re-stores gigabytes of
+identical crates per checkout. Pointing them all at one shared directory - typically
+via a property so it can live outside any single checkout - makes cargo reuse the same
+`deps/` across all of them:
+
+```xml
+<targetRootDir>${rust.targetRootDir}</targetRootDir>
+```
+
+```shell
+$ mvn package -Drust.targetRootDir=$HOME/.cache/shared-rust-target
+```
+
+Because every worktree resolves the same crate directory name under the shared root,
+they share one cargo target directory. Cargo holds an exclusive lock on it, so parallel
+builds across worktrees are serialized rather than corrupting each other; the final
+artifacts are still copied into each checkout's own `<copyTo>` location.
+
+Note: a shared directory set outside `${project.build.directory}` is **not** removed by
+`mvn clean` (see below).
+
 # Cleaning the Rust build
 
 Regular `mvn clean` will also clean the Rust build without additional config.
-This is because the plugin builds crates inside Maven's `target` build
-directory, via `cargo build --target-dir ...`.
+This is because the plugin, by default, builds crates inside Maven's `target`
+build directory, via `cargo build --target-dir ...`. A `<targetRootDir>` pointed
+outside `target` (for example a shared directory, see above) is not cleaned by
+`mvn clean`.
 
 # De-duplicating build directories when invoking `cargo build` without Maven
 

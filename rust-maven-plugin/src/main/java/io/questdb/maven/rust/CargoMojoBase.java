@@ -107,6 +107,26 @@ public abstract class CargoMojoBase extends AbstractMojo {
     @Parameter(property = "extra-args")
     private String[] extraArgs;
 
+    /**
+     * Root directory for cargo's build output, passed to cargo as the
+     * `--target-dir` argument (with the crate's directory name appended).
+     * <p>
+     * Defaults to `${project.build.directory}/rust-maven-plugin`, which keeps the
+     * Rust build output inside Maven's `target` directory (and therefore cleaned by
+     * `mvn clean`).
+     * <p>
+     * Point multiple projects - or multiple git worktrees of the same project - at a
+     * single shared directory to reuse compiled dependencies across builds instead of
+     * recompiling and re-storing the same crates for each checkout. Cargo takes an
+     * exclusive lock on the target directory, so concurrent builds are serialized
+     * rather than corrupting each other. Note that a shared directory set outside
+     * `${project.build.directory}` is no longer removed by `mvn clean`.
+     */
+    @Parameter(
+            property = "targetRootDir",
+            defaultValue = "${project.build.directory}/rust-maven-plugin")
+    private String targetRootDir;
+
     protected String getVerbosity() throws MojoExecutionException {
         if (verbosity == null) {
             return null;
@@ -132,9 +152,12 @@ public abstract class CargoMojoBase extends AbstractMojo {
     }
 
     protected Path getTargetRootDir() {
-        return Paths.get(
-                project.getBuild().getDirectory(),
-                "rust-maven-plugin");
+        if ((targetRootDir == null) || targetRootDir.trim().isEmpty()) {
+            return Paths.get(
+                    project.getBuild().getDirectory(),
+                    "rust-maven-plugin");
+        }
+        return Paths.get(targetRootDir);
     }
 
     protected Crate.Params getCommonCrateParams() throws MojoExecutionException {

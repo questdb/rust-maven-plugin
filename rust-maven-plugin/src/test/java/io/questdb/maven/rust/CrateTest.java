@@ -570,6 +570,47 @@ public class CrateTest {
                 () -> new Crate(mock.crateRoot, targetRootDir, params));
     }
 
+    @Test
+    public void testSharedTargetRootDirIsReusedAcrossCheckouts() throws Exception {
+        // Two "worktrees" of the same project: distinct crate roots that share the
+        // same crate directory name ("rust"), exactly as git worktrees would.
+        final Path worktreeA = tmpDir.newFolder("worktreeA", "rust").toPath();
+        final Path worktreeB = tmpDir.newFolder("worktreeB", "rust").toPath();
+        writeCdylibToml(worktreeA, "opchain");
+        writeCdylibToml(worktreeB, "opchain");
+
+        final Path sharedRoot = tmpDir.newFolder("shared", "rust-maven-plugin").toPath();
+
+        final Crate crateA = new Crate(worktreeA, sharedRoot, new Crate.Params());
+        final Crate crateB = new Crate(worktreeB, sharedRoot, new Crate.Params());
+
+        // Both checkouts resolve to the same cargo target dir under the shared root,
+        // so their compiled dependencies are stored once rather than duplicated.
+        final Path libA = crateA.getArtifactPaths().get(0);
+        final Path libB = crateB.getArtifactPaths().get(0);
+        assertEquals(libB, libA);
+        assertTrue(libA.startsWith(sharedRoot));
+        assertEquals(sharedRoot.resolve("rust"), libA.getParent().getParent());
+
+        // Sanity: the default of a distinct root per checkout does NOT share.
+        final Path rootA = tmpDir.newFolder("perCheckoutA").toPath();
+        final Path rootB = tmpDir.newFolder("perCheckoutB").toPath();
+        assertNotEquals(
+                new Crate(worktreeA, rootA, new Crate.Params()).getArtifactPaths().get(0),
+                new Crate(worktreeB, rootB, new Crate.Params()).getArtifactPaths().get(0));
+    }
+
+    private static void writeCdylibToml(Path crateRoot, String name) throws IOException {
+        writeFile(crateRoot.resolve("Cargo.toml"),
+                "[package]\n" +
+                        "name = \"" + name + "\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n" +
+                        "\n" +
+                        "[lib]\n" +
+                        "crate-type = [\"cdylib\"]\n");
+    }
+
     private static void writeFile(Path dest, String contents) throws IOException {
         try (PrintWriter w = new PrintWriter(dest.toFile(), "UTF-8")) {
             w.write(contents);
