@@ -49,6 +49,10 @@ public class CargoTestMojo extends CargoMojoBase {
                 getTargetRootDir(),
                 getCommonCrateParams());
         crate.setLog(getLog());
-        crate.test();
+        // Share the same lock as `build` so tests and builds across checkouts that share
+        // a target directory are serialized rather than clobbering each other's output.
+        try (TargetDirLock ignored = crate.lockTargetDir()) {
+            crate.test();
+        }
     }
 }

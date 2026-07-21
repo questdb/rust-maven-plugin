@@ -38,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.*;
 
@@ -598,6 +599,36 @@ public class CrateTest {
         assertNotEquals(
                 new Crate(worktreeA, rootA, new Crate.Params()).getArtifactPaths().get(0),
                 new Crate(worktreeB, rootB, new Crate.Params()).getArtifactPaths().get(0));
+    }
+
+    @Test
+    public void testTargetDirLockIsExclusive() throws Exception {
+        final Path targetDir = tmpDir.newFolder("shared", "rust").toPath();
+
+        final TargetDirLock held = TargetDirLock.acquire(targetDir);
+
+        // The lock file lives next to the target dir so shared checkouts contend on it.
+        assertTrue(Files.exists(targetDir.resolveSibling("rust.lock")));
+
+        // A second acquisition from another thread must block while the first is held.
+        final AtomicBoolean acquired = new AtomicBoolean(false);
+        final Thread contender = new Thread(() -> {
+            try (TargetDirLock ignored = TargetDirLock.acquire(targetDir)) {
+                acquired.set(true);
+            } catch (MojoExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        contender.start();
+        contender.join(500);
+        assertFalse("second lock must not be acquired while the first is held",
+                acquired.get());
+
+        held.close();
+        contender.join(5000);
+        assertFalse(contender.isAlive());
+        assertTrue("second lock must be acquired once the first is released",
+                acquired.get());
     }
 
     private static void writeCdylibToml(Path crateRoot, String name) throws IOException {

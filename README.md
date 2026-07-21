@@ -278,9 +278,14 @@ $ mvn package -Drust.targetRootDir=$HOME/.cache/shared-rust-target
 ```
 
 Because every worktree resolves the same crate directory name under the shared root,
-they share one cargo target directory. Cargo holds an exclusive lock on it, so parallel
-builds across worktrees are serialized rather than corrupting each other; the final
-artifacts are still copied into each checkout's own `<copyTo>` location.
+they share one cargo target directory. To keep that safe, the plugin takes its own
+exclusive lock (a lock file next to the target directory) spanning the whole build and
+the subsequent artifact copy - not just the `cargo` invocation. This matters because
+cargo leaves the final artifact under `<profile>` un-fingerprinted and releases its own
+lock as soon as it exits, so without the plugin lock a second checkout could overwrite
+that artifact in the window before the first checkout copies it. Builds and tests across
+worktrees are therefore serialized rather than clobbering each other, and each checkout's
+artifacts are copied into its own `<copyTo>` location.
 
 Note: a shared directory set outside `${project.build.directory}` is **not** removed by
 `mvn clean` (see below).

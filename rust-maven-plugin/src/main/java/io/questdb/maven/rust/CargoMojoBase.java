@@ -117,10 +117,11 @@ public abstract class CargoMojoBase extends AbstractMojo {
      * <p>
      * Point multiple projects - or multiple git worktrees of the same project - at a
      * single shared directory to reuse compiled dependencies across builds instead of
-     * recompiling and re-storing the same crates for each checkout. Cargo takes an
-     * exclusive lock on the target directory, so concurrent builds are serialized
-     * rather than corrupting each other. Note that a shared directory set outside
-     * `${project.build.directory}` is no longer removed by `mvn clean`.
+     * recompiling and re-storing the same crates for each checkout. When a directory is
+     * shared, the plugin serializes builds against it with its own lock (see
+     * `TargetDirLock`) so concurrent builds cannot overwrite each other's artifacts.
+     * Note that a shared directory set outside `${project.build.directory}` is no longer
+     * removed by `mvn clean`.
      */
     @Parameter(
             property = "targetRootDir",

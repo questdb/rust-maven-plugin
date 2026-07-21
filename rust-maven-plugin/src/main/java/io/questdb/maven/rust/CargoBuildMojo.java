@@ -67,8 +67,13 @@ public class CargoBuildMojo extends CargoMojoBase {
                 getTargetRootDir(),
                 extractCrateParams());
         crate.setLog(getLog());
-        crate.build();
-        crate.copyArtifacts();
+        // Lock spans both the build and the copy: cargo leaves the (non-fingerprinted)
+        // final artifact in the target dir, and a concurrent build sharing that dir could
+        // overwrite it between `cargo` exiting and copyArtifacts() reading it.
+        try (TargetDirLock ignored = crate.lockTargetDir()) {
+            crate.build();
+            crate.copyArtifacts();
+        }
     }
 
     private Crate.Params extractCrateParams() throws MojoExecutionException {
