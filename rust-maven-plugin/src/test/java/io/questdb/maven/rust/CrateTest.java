@@ -631,6 +631,35 @@ public class CrateTest {
                 acquired.get());
     }
 
+    @Test
+    public void testResolveTargetRootDirDefault() {
+        final Path base = tmpDir.getRoot().toPath();
+        final Path buildDir = base.resolve("target");
+        final Path expected = buildDir.resolve("rust-maven-plugin");
+        assertEquals(expected,
+                CargoMojoBase.resolveTargetRootDir(null, base, buildDir.toString()));
+        assertEquals(expected,
+                CargoMojoBase.resolveTargetRootDir("   ", base, buildDir.toString()));
+    }
+
+    @Test
+    public void testResolveTargetRootDirRelativeIsResolvedAgainstBasedir() {
+        final Path base = tmpDir.getRoot().toPath().toAbsolutePath();
+        final Path resolved = CargoMojoBase.resolveTargetRootDir(
+                "shared-target", base, base.resolve("target").toString());
+        // Resolved against the module, not the (arbitrary) process working directory.
+        assertTrue(resolved.isAbsolute());
+        assertEquals(base.resolve("shared-target"), resolved);
+    }
+
+    @Test
+    public void testResolveTargetRootDirAbsoluteIsKept() {
+        final Path base = tmpDir.getRoot().toPath().toAbsolutePath();
+        final Path absolute = base.resolve("elsewhere").resolve("shared").toAbsolutePath();
+        assertEquals(absolute, CargoMojoBase.resolveTargetRootDir(
+                absolute.toString(), base, base.resolve("target").toString()));
+    }
+
     private static void writeCdylibToml(Path crateRoot, String name) throws IOException {
         writeFile(crateRoot.resolve("Cargo.toml"),
                 "[package]\n" +

@@ -325,6 +325,12 @@ passed by this plugin.
 See [.cargo/config.toml](rust-maven-jni-example/src/main/rust/str-reverse/.cargo/config.toml)
 from the `str-reverse` crate in the example.
 
+Only do this when the plugin builds into the crate's **own** (default) target
+directory. Do **not** point `.cargo/config.toml` at a *shared* `targetRootDir`
+(see [Overriding the cargo target directory](#overriding-the-cargo-target-directory)):
+that would make your IDE / raw `cargo` builds write into the shared directory
+concurrently with plugin builds, which the plugin's lock cannot guard against.
+
 # Bundling binaries in the `.jar` file
 
 The `<copyTo>` configuration (as shown in the example) allows copying the

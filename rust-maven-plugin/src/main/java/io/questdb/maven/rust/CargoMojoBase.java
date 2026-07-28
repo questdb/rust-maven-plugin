@@ -155,12 +155,24 @@ public abstract class CargoMojoBase extends AbstractMojo {
     }
 
     protected Path getTargetRootDir() {
-        if ((targetRootDir == null) || targetRootDir.trim().isEmpty()) {
-            return Paths.get(
-                    project.getBuild().getDirectory(),
-                    "rust-maven-plugin");
+        return resolveTargetRootDir(
+                targetRootDir,
+                project.getBasedir().toPath(),
+                project.getBuild().getDirectory());
+    }
+
+    /**
+     * Resolves the configured `targetRootDir` value. An unset/blank value defaults to
+     * `<buildDirectory>/rust-maven-plugin`; a relative value is resolved against the
+     * module `basedir` (consistently with `path` and `copyTo`) rather than against
+     * Maven's launch directory; an absolute value is used as-is.
+     */
+    static Path resolveTargetRootDir(String configured, Path basedir, String buildDirectory) {
+        if ((configured == null) || configured.trim().isEmpty()) {
+            return Paths.get(buildDirectory, "rust-maven-plugin");
         }
-        return Paths.get(targetRootDir);
+        final Path root = Paths.get(configured);
+        return root.isAbsolute() ? root : basedir.resolve(root);
     }
 
     /**
