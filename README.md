@@ -251,11 +251,66 @@ In the `<configuration>` section, add:
 </environmentVariables>
 ```
 
+## Overriding the cargo target directory
+
+By default the plugin builds into `${project.build.directory}/rust-maven-plugin`
+(i.e. inside Maven's `target` directory). Set `<targetRootDir>` to build somewhere
+else. The plugin appends the crate's directory name and passes the result to cargo
+as `--target-dir`.
+
+```xml
+<targetRootDir>${project.build.directory}/rust-maven-plugin</targetRootDir>
+```
+
+The main use case is **sharing compiled dependencies across checkouts**. If you keep
+several git worktrees (or sibling clones) of the same project, each one otherwise gets
+its own copy of every compiled dependency, which recompiles and re-stores gigabytes of
+identical crates per checkout. Pointing them all at one shared directory - typically
+via a property so it can live outside any single checkout - makes cargo reuse the same
+`deps/` across all of them:
+
+```xml
+<targetRootDir>${rust.targetRootDir}</targetRootDir>
+```
+
+```shell
+$ mvn package -Drust.targetRootDir=$HOME/.cache/shared-rust-target
+```
+
+Because every worktree resolves the same crate directory name under the shared root,
+they share one cargo target directory. To keep that safe, the plugin takes its own
+exclusive lock (a lock file next to the target directory) spanning the whole build and
+the subsequent artifact copy - not just the `cargo` invocation. The lock engages only
+when `targetRootDir` points outside `${project.build.directory}` (i.e. a shared or
+otherwise non-default directory); a conventional single-checkout build takes no lock and
+is unaffected. This matters because
+cargo leaves the final artifact under `<profile>` un-fingerprinted and releases its own
+lock as soon as it exits, so without the plugin lock a second **plugin-driven** build
+could overwrite that artifact in the window before the first one copies it. Builds and
+tests driven by the plugin across worktrees are therefore serialized rather than
+clobbering each other, and each checkout's artifacts are copied into its own `<copyTo>`
+location.
+
+**Scope of the lock.** It only coordinates builds that go through this plugin - it is an
+ordinary advisory lock file that a plain `cargo build`/`test`, or an IDE / rust-analyzer,
+knows nothing about. Do not point a concurrent raw `cargo` invocation at a *shared* target
+directory: it can overwrite the final artifact in the copy window regardless of the lock.
+In practice tools use their own target directory by default (an IDE or rust-analyzer does
+not build into the plugin's `--target-dir` unless you configure it to, e.g. via
+`.cargo/config.toml`), so this is only a concern if you deliberately share the directory
+with non-Maven builds. A fully writer-agnostic fix awaits cargo's `--artifact-dir` (copy
+the final artifact straight to a private directory), which is still nightly-only.
+
+Note: a shared directory set outside `${project.build.directory}` is **not** removed by
+`mvn clean` (see below).
+
 # Cleaning the Rust build
 
 Regular `mvn clean` will also clean the Rust build without additional config.
-This is because the plugin builds crates inside Maven's `target` build
-directory, via `cargo build --target-dir ...`.
+This is because the plugin, by default, builds crates inside Maven's `target`
+build directory, via `cargo build --target-dir ...`. A `<targetRootDir>` pointed
+outside `target` (for example a shared directory, see above) is not cleaned by
+`mvn clean`.
 
 # De-duplicating build directories when invoking `cargo build` without Maven
 
@@ -269,6 +324,12 @@ passed by this plugin.
 
 See [.cargo/config.toml](rust-maven-jni-example/src/main/rust/str-reverse/.cargo/config.toml)
 from the `str-reverse` crate in the example.
+
+Only do this when the plugin builds into the crate's **own** (default) target
+directory. Do **not** point `.cargo/config.toml` at a *shared* `targetRootDir`
+(see [Overriding the cargo target directory](#overriding-the-cargo-target-directory)):
+that would make your IDE / raw `cargo` builds write into the shared directory
+concurrently with plugin builds, which the plugin's lock cannot guard against.
 
 # Bundling binaries in the `.jar` file
 

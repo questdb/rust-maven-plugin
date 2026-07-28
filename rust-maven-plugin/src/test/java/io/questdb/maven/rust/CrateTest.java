@@ -38,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.*;
 
@@ -568,6 +569,106 @@ public class CrateTest {
         assertThrows(
                 MojoExecutionException.class,
                 () -> new Crate(mock.crateRoot, targetRootDir, params));
+    }
+
+    @Test
+    public void testSharedTargetRootDirIsReusedAcrossCheckouts() throws Exception {
+        // Two "worktrees" of the same project: distinct crate roots that share the
+        // same crate directory name ("rust"), exactly as git worktrees would.
+        final Path worktreeA = tmpDir.newFolder("worktreeA", "rust").toPath();
+        final Path worktreeB = tmpDir.newFolder("worktreeB", "rust").toPath();
+        writeCdylibToml(worktreeA, "opchain");
+        writeCdylibToml(worktreeB, "opchain");
+
+        final Path sharedRoot = tmpDir.newFolder("shared", "rust-maven-plugin").toPath();
+
+        final Crate crateA = new Crate(worktreeA, sharedRoot, new Crate.Params());
+        final Crate crateB = new Crate(worktreeB, sharedRoot, new Crate.Params());
+
+        // Both checkouts resolve to the same cargo target dir under the shared root,
+        // so their compiled dependencies are stored once rather than duplicated.
+        final Path libA = crateA.getArtifactPaths().get(0);
+        final Path libB = crateB.getArtifactPaths().get(0);
+        assertEquals(libB, libA);
+        assertTrue(libA.startsWith(sharedRoot));
+        assertEquals(sharedRoot.resolve("rust"), libA.getParent().getParent());
+
+        // Sanity: the default of a distinct root per checkout does NOT share.
+        final Path rootA = tmpDir.newFolder("perCheckoutA").toPath();
+        final Path rootB = tmpDir.newFolder("perCheckoutB").toPath();
+        assertNotEquals(
+                new Crate(worktreeA, rootA, new Crate.Params()).getArtifactPaths().get(0),
+                new Crate(worktreeB, rootB, new Crate.Params()).getArtifactPaths().get(0));
+    }
+
+    @Test
+    public void testTargetDirLockIsExclusive() throws Exception {
+        final Path targetDir = tmpDir.newFolder("shared", "rust").toPath();
+
+        final TargetDirLock held = TargetDirLock.acquire(targetDir);
+
+        // The lock file lives next to the target dir so shared checkouts contend on it.
+        assertTrue(Files.exists(targetDir.resolveSibling("rust.lock")));
+
+        // A second acquisition from another thread must block while the first is held.
+        final AtomicBoolean acquired = new AtomicBoolean(false);
+        final Thread contender = new Thread(() -> {
+            try (TargetDirLock ignored = TargetDirLock.acquire(targetDir)) {
+                acquired.set(true);
+            } catch (MojoExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        contender.start();
+        contender.join(500);
+        assertFalse("second lock must not be acquired while the first is held",
+                acquired.get());
+
+        held.close();
+        contender.join(5000);
+        assertFalse(contender.isAlive());
+        assertTrue("second lock must be acquired once the first is released",
+                acquired.get());
+    }
+
+    @Test
+    public void testResolveTargetRootDirDefault() {
+        final Path base = tmpDir.getRoot().toPath();
+        final Path buildDir = base.resolve("target");
+        final Path expected = buildDir.resolve("rust-maven-plugin");
+        assertEquals(expected,
+                CargoMojoBase.resolveTargetRootDir(null, base, buildDir.toString()));
+        assertEquals(expected,
+                CargoMojoBase.resolveTargetRootDir("   ", base, buildDir.toString()));
+    }
+
+    @Test
+    public void testResolveTargetRootDirRelativeIsResolvedAgainstBasedir() {
+        final Path base = tmpDir.getRoot().toPath().toAbsolutePath();
+        final Path resolved = CargoMojoBase.resolveTargetRootDir(
+                "shared-target", base, base.resolve("target").toString());
+        // Resolved against the module, not the (arbitrary) process working directory.
+        assertTrue(resolved.isAbsolute());
+        assertEquals(base.resolve("shared-target"), resolved);
+    }
+
+    @Test
+    public void testResolveTargetRootDirAbsoluteIsKept() {
+        final Path base = tmpDir.getRoot().toPath().toAbsolutePath();
+        final Path absolute = base.resolve("elsewhere").resolve("shared").toAbsolutePath();
+        assertEquals(absolute, CargoMojoBase.resolveTargetRootDir(
+                absolute.toString(), base, base.resolve("target").toString()));
+    }
+
+    private static void writeCdylibToml(Path crateRoot, String name) throws IOException {
+        writeFile(crateRoot.resolve("Cargo.toml"),
+                "[package]\n" +
+                        "name = \"" + name + "\"\n" +
+                        "version = \"0.1.0\"\n" +
+                        "edition = \"2021\"\n" +
+                        "\n" +
+                        "[lib]\n" +
+                        "crate-type = [\"cdylib\"]\n");
     }
 
     private static void writeFile(Path dest, String contents) throws IOException {

@@ -420,6 +420,25 @@ public class Crate {
         }
     }
 
+    /**
+     * Acquires an exclusive lock over this crate's cargo target directory, blocking
+     * until it is available. The caller must hold it across {@link #build()} and
+     * {@link #copyArtifacts()} (or {@link #test()}) so that a concurrent build sharing
+     * the same target directory cannot overwrite the final artifact before it is copied.
+     * See {@link TargetDirLock} for details.
+     * <p>
+     * When {@code shared} is false the target directory is private to this build, so the
+     * returned lock is a no-op and the build is not serialized.
+     */
+    public TargetDirLock lockTargetDir(boolean shared) throws MojoExecutionException {
+        if (!shared) {
+            return TargetDirLock.disabled();
+        }
+        log.info("Acquiring exclusive lock on shared target dir: "
+                + targetDir.toAbsolutePath());
+        return TargetDirLock.acquire(targetDir);
+    }
+
     public void build() throws MojoExecutionException, MojoFailureException {
         List<String> args = new ArrayList<>();
         args.add("build");

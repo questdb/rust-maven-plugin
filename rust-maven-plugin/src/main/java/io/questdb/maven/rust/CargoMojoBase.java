@@ -107,6 +107,29 @@ public abstract class CargoMojoBase extends AbstractMojo {
     @Parameter(property = "extra-args")
     private String[] extraArgs;
 
+    /**
+     * Root directory for cargo's build output, passed to cargo as the
+     * `--target-dir` argument (with the crate's directory name appended).
+     * <p>
+     * Defaults to `${project.build.directory}/rust-maven-plugin`, which keeps the
+     * Rust build output inside Maven's `target` directory (and therefore cleaned by
+     * `mvn clean`).
+     * <p>
+     * Point multiple projects - or multiple git worktrees of the same project - at a
+     * single shared directory to reuse compiled dependencies across builds instead of
+     * recompiling and re-storing the same crates for each checkout. When a directory is
+     * shared, the plugin serializes builds against it with its own lock (see
+     * `TargetDirLock`) so concurrent plugin-driven builds cannot overwrite each other's
+     * artifacts. That lock does not coordinate with raw `cargo` runs outside the plugin,
+     * so do not point a concurrent standalone `cargo` build at a shared directory.
+     * Note that a shared directory set outside `${project.build.directory}` is no longer
+     * removed by `mvn clean`.
+     */
+    @Parameter(
+            property = "targetRootDir",
+            defaultValue = "${project.build.directory}/rust-maven-plugin")
+    private String targetRootDir;
+
     protected String getVerbosity() throws MojoExecutionException {
         if (verbosity == null) {
             return null;
@@ -132,9 +155,36 @@ public abstract class CargoMojoBase extends AbstractMojo {
     }
 
     protected Path getTargetRootDir() {
-        return Paths.get(
-                project.getBuild().getDirectory(),
-                "rust-maven-plugin");
+        return resolveTargetRootDir(
+                targetRootDir,
+                project.getBasedir().toPath(),
+                project.getBuild().getDirectory());
+    }
+
+    /**
+     * Resolves the configured `targetRootDir` value. An unset/blank value defaults to
+     * `<buildDirectory>/rust-maven-plugin`; a relative value is resolved against the
+     * module `basedir` (consistently with `path` and `copyTo`) rather than against
+     * Maven's launch directory; an absolute value is used as-is.
+     */
+    static Path resolveTargetRootDir(String configured, Path basedir, String buildDirectory) {
+        if ((configured == null) || configured.trim().isEmpty()) {
+            return Paths.get(buildDirectory, "rust-maven-plugin");
+        }
+        final Path root = Paths.get(configured);
+        return root.isAbsolute() ? root : basedir.resolve(root);
+    }
+
+    /**
+     * Whether the configured target root is a shared directory, i.e. not the module's
+     * own directory under `${project.build.directory}`. The build lock only engages for
+     * shared directories, so a conventional single-checkout build is unaffected.
+     */
+    protected boolean isSharedTargetDir() {
+        final Path root = getTargetRootDir().toAbsolutePath().normalize();
+        final Path buildDir = Paths.get(project.getBuild().getDirectory())
+                .toAbsolutePath().normalize();
+        return !root.startsWith(buildDir);
     }
 
     protected Crate.Params getCommonCrateParams() throws MojoExecutionException {
