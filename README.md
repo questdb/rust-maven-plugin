@@ -385,8 +385,13 @@ when you run `Build -> Build Project` or `Build -> Rebuild Project`.
 
 This is because IntelliJ uses its own build system, and does not invoke Maven.
 
-To work around this, you can add a Maven Run Configuration that invokes an Ant task before each build.
-The Ant task then invokes the Maven build step.
+To work around this, add an Ant target that invokes Maven and configure IntelliJ to run it before each build.
+
+Enable the **Ant** plugin under **Settings -> Plugins -> Installed**. If it is not installed,
+install [Ant from JetBrains Marketplace](https://plugins.jetbrains.com/plugin/23025-ant)
+and restart the IDE. Ant is no longer bundled with IntelliJ; check the plugin's compatibility
+with your IDE version in the [JetBrains Ant documentation](https://www.jetbrains.com/help/idea/ant.html).
+Make sure Maven's `bin` directory is on the `PATH` inherited by IntelliJ.
 
 Whilst it does sound a little scary to also involve Ant, the actual XML is (for once) very simple.
 
@@ -397,7 +402,12 @@ Whilst it does sound a little scary to also involve Ant, the actual XML is (for 
         IntelliJ integration to trigger maven steps to build the Rust code via the rust-maven-plugin.
     </description>
     <target name="str-reverse-intellij-build">
-        <exec executable="mvn">
+        <exec executable="mvn" osfamily="unix" dir="${basedir}" failonerror="true">
+            <arg value="org.questdb:rust-maven-plugin:build@str-reverse"/>
+        </exec>
+        <exec executable="cmd.exe" osfamily="windows" dir="${basedir}" failonerror="true">
+            <arg value="/c"/>
+            <arg value="mvn.cmd"/>
             <arg value="org.questdb:rust-maven-plugin:build@str-reverse"/>
         </exec>
     </target>
@@ -406,12 +416,15 @@ Whilst it does sound a little scary to also involve Ant, the actual XML is (for 
 
 In the XML above, `str-reverse` is the `<id>` of the `<execution>` block in the
 `rust-maven-plugin` configuration in the `pom.xml` file.
+The OS-specific tasks run `mvn` on Linux/macOS and `cmd.exe /c mvn.cmd` on Windows,
+where Maven is a command script rather than `mvn.exe`.
 
 You can add multiple executions here, for example to also build release binaries.
 
 Check the file into your source control.
 
-You can then go to the Ant window in IntelliJ (View -> Tool Windows -> Ant) and
+Add `rust-intellij.xml` as an Ant build file in IntelliJ. You can then go to the
+Ant window (View -> Tool Windows -> Ant) and
 select the configured ant target, right-click, Execute On -> Before Build.
 
 This will generate a new `.idea/ant.xml` file that will be picked up by IntelliJ
