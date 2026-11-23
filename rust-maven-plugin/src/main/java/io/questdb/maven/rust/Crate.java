@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 /**
@@ -342,11 +343,11 @@ public class Crate {
         return path;
     }
 
-    private void runCommand(List<String> args)
+    private void runCommand(List<String> args, Map<String, String> environmentVariables)
             throws IOException, InterruptedException, MojoExecutionException {
         final ProcessBuilder processBuilder = new ProcessBuilder(args);
         processBuilder.redirectErrorStream(true);
-        processBuilder.environment().putAll(params.environmentVariables);
+        processBuilder.environment().putAll(environmentVariables);
 
         // Set the current working directory for the cargo command.
         processBuilder.directory(crateRoot.toFile());
@@ -364,21 +365,27 @@ public class Crate {
     }
 
     private void cargo(List<String> args) throws MojoExecutionException, MojoFailureException {
+        final Map<String, String> environmentVariables = new HashMap<>();
+        if (params.environmentVariables != null) {
+            // Maven represents empty environment-variable properties as null values.
+            params.environmentVariables.forEach((key, value) ->
+                    environmentVariables.put(key, value == null ? "" : value));
+        }
         String cargoPath = getCargoPath();
         final List<String> cmd = new ArrayList<>();
         cmd.add(cargoPath);
         cmd.addAll(args);
         log.info("Working directory: " + crateRoot);
-        if (!params.environmentVariables.isEmpty()) {
+        if (!environmentVariables.isEmpty()) {
             log.info("Environment variables:");
-            for (String key : params.environmentVariables.keySet()) {
+            for (String key : environmentVariables.keySet()) {
                 log.info("  " + key + "=" + Shlex.quote(
-                        params.environmentVariables.get(key)));
+                        environmentVariables.get(key)));
             }
         }
         log.info("Running: " + Shlex.quote(cmd));
         try {
-            runCommand(cmd);
+            runCommand(cmd, environmentVariables);
         } catch (IOException | InterruptedException e) {
             CargoInstalledChecker.INSTANCE.check(cargoPath);
             throw new MojoFailureException("Failed to invoke cargo", e);
