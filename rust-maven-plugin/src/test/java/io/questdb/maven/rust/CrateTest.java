@@ -494,6 +494,48 @@ public class CrateTest {
     }
 
     @Test
+    public void testNullEnvironmentValue() throws Exception {
+        doTestEnvironmentValue(null, "", true);
+    }
+
+    @Test
+    public void testEmptyEnvironmentValue() throws Exception {
+        doTestEnvironmentValue("", "", true);
+    }
+
+    @Test
+    public void testNonEmptyEnvironmentValue() throws Exception {
+        doTestEnvironmentValue("-D warnings", "-D warnings", true);
+    }
+
+    @Test
+    public void testNoEnvironmentVariables() throws Exception {
+        doTestEnvironmentValue(null, "", false);
+    }
+
+    private void doTestEnvironmentValue(String value, String expected, boolean configured) throws Exception {
+        final MockCrate mock = new MockCrate("environment", "debug");
+        mock.writeCargoToml("[package]\nname = \"environment\"\nversion = \"0.1.0\"\n");
+        final Path output = mock.crateRoot.resolve("environment.txt");
+        final Path cargo = mock.crateRoot.resolve(isWindows() ? "cargo.cmd" : "cargo.sh");
+        writeFile(cargo, isWindows()
+                ? "@echo off\r\n>environment.txt echo [%RUST_MAVEN_TEST_VALUE%]\r\n"
+                : "#!/bin/sh\nprintf '[%s]\\n' \"$RUST_MAVEN_TEST_VALUE\" > environment.txt\n");
+        assertTrue(cargo.toFile().setExecutable(true));
+        final Crate.Params params = defaultParams();
+        params.cargoPath = cargo.toString();
+        if (configured) {
+            params.environmentVariables.put("RUST_MAVEN_TEST_VALUE", value);
+        } else {
+            params.environmentVariables = null;
+        }
+        final Crate crate = new Crate(mock.crateRoot, targetRootDir, params);
+        crate.setLog(TestLog.INSTANCE);
+        crate.build();
+        assertEquals("[" + expected + "]", new String(Files.readAllBytes(output), "UTF-8").trim());
+    }
+
+    @Test
     public void testTwoFeatures() throws Exception {
         final String crateName = "two-features";
         final MockCrate mock = new MockCrate(crateName, "release");
